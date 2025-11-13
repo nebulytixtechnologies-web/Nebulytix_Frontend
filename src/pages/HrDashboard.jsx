@@ -5,12 +5,18 @@ import AddHrForm from "../components/admin/AddHrForm";
 import AddJobForm from "../components/hr/AddJobForm";
 import JobList from "../components/hr/JobList";
 import EmployeeList from "../components/hr/EmployeeList";
+import { Menu, UserPlus, Briefcase, FileText, LogOut } from "lucide-react";
+
+
 
 export default function HrDashboard() {
   const navigate = useNavigate();
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddJob, setShowAddJob] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+
 
   function triggerRefresh() {
     setRefreshKey((k) => k + 1);
@@ -29,32 +35,81 @@ export default function HrDashboard() {
       <h1 className="text-3xl font-bold text-center text-sky-700 mb-4">
         HR Dashboard
       </h1>
+{/* Top Section */}
+<div className="bg-sky-100 rounded-lg p-6 shadow relative">
 
-      {/* Top Section */}
-      <div className="bg-sky-100 rounded-lg p-6 shadow space-y-4">
-        <HrInfo role="hr" refreshKey={refreshKey} />
+  {/* Flex container: HR Info left, Menu right */}
+  <div className="flex items-start justify-between w-full">
 
-        <div className="flex flex-col md:flex-row gap-3 justify-center">
+    {/* HR Info (fills the box properly) */}
+    <div className="flex-1 whitespace-pre-line">
+  <HrInfo role="hr" refreshKey={refreshKey}  />
+</div>
+
+
+
+
+
+    {/* Hamburger menu */}
+    <div className="relative ml-4">
+      <button
+        onClick={() => setMenuOpen(prev => !prev)}
+        className="p-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition shadow"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Dropdown */}
+      {menuOpen && (
+        <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 shadow-xl rounded-lg p-2 z-50">
+
+          {/* Add Employee */}
           <button
             onClick={() => setShowAddEmployee(true)}
-            className="px-4 py-2 bg-emerald-600 text-white font-semibold rounded hover:bg-emerald-700 transition"
+            className="flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-sky-50 rounded"
           >
-            + Add Employee
+            <UserPlus size={18} className="text-sky-700" />
+            Add Employee
           </button>
+
+          {/* Add Job */}
           <button
-            onClick={() => setShowAddJob(true)}
-            className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition"
+  onClick={() => setShowAddJob(true)}
+  className="flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-sky-50 rounded"
+>
+  <Briefcase size={18} className="text-purple-700" />
+  Add Job
+</button>
+
+
+
+          {/* View Report */}
+          <button
+            onClick={() => navigate('/hr/view-report')}
+            className="flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-sky-50 rounded"
           >
-            + Add Job
+            <FileText size={18} className="text-blue-700" />
+            View Report
           </button>
+
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition"
+            className="flex items-center gap-2 w-full px-4 py-2 text-left hover:bg-red-50 rounded text-red-600"
           >
+            <LogOut size={18} />
             Logout
           </button>
+
         </div>
-      </div>
+      )}
+    </div>
+  </div>
+</div>
+
+
+
+
 
       {/* Employee List Section */}
       <div className="bg-green-50 rounded-lg p-6 shadow">

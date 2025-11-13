@@ -6,11 +6,14 @@ import AddHrForm from "../components/admin/AddHrForm";
 import TaskList from "../components/admin/TaskList";
 import ViewTasksModal from "../components/admin/ViewTasksModal";
 import profileLogo from "../assets/images/profileLogo.png";
+import { Menu, UserPlus, FileText, LogOut } from "lucide-react";
+
+
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-
+const [menuOpen, setMenuOpen] = useState(false);
   const [admin, setAdmin] = useState(null);
   const [showAddHr, setShowAddHr] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -94,44 +97,71 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header: Title + Profile + Actions */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-sky-50 p-6 rounded-lg shadow-sm">
-        <div className="flex items-center gap-4 mb-4 md:mb-0">
-          <img
-            src={profileLogo || "/default-avatar.png"}
-            alt="Admin avatar"
-            className="w-14 h-14 rounded-full border-2 border-sky-300"
-          />
-          <div>
-            <h1 className="text-2xl font-bold text-sky-700">Admin Dashboard</h1>
-            <h2 className="text-xl font-semibold mt-1">
-              {admin?.firstName || admin?.name || "Admin Name"}
-            </h2>
-            <p className="text-gray-600">
-              {admin?.email || "admin@example.com"}
-            </p>
-            <p className="text-sm text-gray-500">
-              Role: {admin?.loginRole || "admin"}
-            </p>
-          </div>
-        </div>
+     {/* Header: Title + Profile + Actions */}
+<div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-sky-50 p-6 rounded-lg shadow-sm relative">
 
-        <div className="flex gap-3">
-          <button
-            onClick={onClickAddHr}
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-          >
-            + Add HR
-          </button>
+  {/* Left: Profile */}
+  <div className="flex items-center gap-4 mb-4 md:mb-0">
+    <img
+      src={profileLogo || "/default-avatar.png"}
+      alt="Admin avatar"
+      className="w-14 h-14 rounded-full border-2 border-sky-300"
+    />
+    <div>
+      <h1 className="text-2xl font-bold text-sky-700">Admin Dashboard</h1>
+      <h2 className="text-xl font-semibold mt-1">
+        {admin?.firstName || admin?.name || "Admin Name"}
+      </h2>
+      <p className="text-gray-600">{admin?.email || "admin@example.com"}</p>
+      <p className="text-sm text-gray-500">
+        Role: {admin?.loginRole || "admin"}
+      </p>
+    </div>
+  </div>
 
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+  {/* Right: Hamburger Menu */}
+<div className="relative">
+  <button
+    className="p-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition"
+    onClick={() => setMenuOpen(prev => !prev)}
+  >
+    <Menu className="w-6 h-6" />
+  </button>
+
+  {/* Dropdown */}
+  {menuOpen && (
+    <div className="absolute right-0 mt-3 bg-white shadow-lg rounded-lg w-48 p-2 z-50">
+
+      <button
+        onClick={onClickAddHr}
+        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-sky-100 rounded"
+      >
+        <UserPlus size={18} className="text-sky-700" />
+        Add HR
+      </button>
+
+      <button
+        onClick={() => navigate('/admin/view-report')}
+        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-sky-100 rounded"
+      >
+        <FileText size={18} className="text-blue-700" />
+        View Report
+      </button>
+
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-100 rounded text-red-600"
+      >
+        <LogOut size={18} />
+        Logout
+      </button>
+
+    </div>
+  )}
+</div>
+
+</div>
+
 
       {/* Employee List Section with distinct background */}
       {!selectedEmployeeForTasks && (
