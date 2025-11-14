@@ -7,13 +7,15 @@ import TaskList from "../components/admin/TaskList";
 import ViewTasksModal from "../components/admin/ViewTasksModal";
 import profileLogo from "../assets/images/profileLogo.png";
 import { Menu, UserPlus, FileText, LogOut } from "lucide-react";
+import { BACKEND_BASE_URL } from "../api/config";
 
 
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const location = useLocation();
-const [menuOpen, setMenuOpen] = useState(false);
+  
+ const navigate = useNavigate();
+ const location = useLocation();
+ const [menuOpen, setMenuOpen] = useState(false);
   const [admin, setAdmin] = useState(null);
   const [showAddHr, setShowAddHr] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -21,6 +23,39 @@ const [menuOpen, setMenuOpen] = useState(false);
     useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTaskAllowSubmit, setSelectedTaskAllowSubmit] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+
+
+  // Function to handle viewing today's report
+  const handleViewReport = async () => {
+    if (!selectedDate) {
+    alert("Please select a date first.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_BASE_URL}/admin/reports/daily?submittedDate=${selectedDate}`,
+      {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("neb_token")}`
+      },
+    }
+  );
+
+  if (!response.ok) throw new Error("Failed to fetch report");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // Open PDF in new tab
+    window.open(url, "_blank");
+
+  } catch (err) {
+    console.error("Error fetching daily report:",err);
+    alert("Failed to load daily report");
+  }
+};
 
   useEffect(() => {
     // Prefer admin passed via location.state (after login). Fallback to localStorage.
@@ -97,8 +132,10 @@ const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8">
+
+
      {/* Header: Title + Profile + Actions */}
-<div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-sky-50 p-6 rounded-lg shadow-sm relative">
+  <div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-sky-50 p-6 rounded-lg shadow-sm relative">
 
   {/* Left: Profile */}
   <div className="flex items-center gap-4 mb-4 md:mb-0">
@@ -141,7 +178,7 @@ const [menuOpen, setMenuOpen] = useState(false);
       </button>
 
       <button
-        onClick={() => navigate('/admin/view-report')}
+        onClick= {handleViewReport}
         className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-sky-100 rounded"
       >
         <FileText size={18} className="text-blue-700" />

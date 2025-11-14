@@ -9,16 +9,16 @@ export default function Navbar() {
   const navigate = useNavigate();
   return (
     <nav className="bg-white shadow">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="container mx-2 flex items-center justify-between">
+        <div className="flex mx-8 items-center gap-2 ">
           <img
             src={logo}
             alt="Nebulytix Technology Logo"
-            className="h-14 w-14 object-contain"
+            className="h-28 w-28  object-contain"
           />
-          <Link to="/" className="text-xl font-bold text-sky-600">
+          {/* <Link to="/" className="text-xl font-bold text-sky-600">
             Nebulytix Technology
-          </Link>
+          </Link> */}
         </div>
 
         <div className="hidden md:flex gap-6">
@@ -37,6 +37,14 @@ export default function Navbar() {
             }
           >
             Career
+          </NavLink>
+           <NavLink
+            to="/contacts"
+            className={({ isActive }) =>
+              isActive ? "text-sky-600 font-semibold" : "text-gray-700"
+            }
+          >
+            Contact
           </NavLink>
         </div>
 

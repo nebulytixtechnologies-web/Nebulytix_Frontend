@@ -7,6 +7,7 @@ import HrDashboard from "./pages/HrDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import JobDetails from "./pages/JobDetails";
+import contacts from "./pages/contacts";
 
 
 export default function App() {
