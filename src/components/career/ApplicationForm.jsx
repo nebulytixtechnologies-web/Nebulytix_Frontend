@@ -1,7 +1,7 @@
+// src/components/career/ApplicationForm.jsx
 import { useState } from "react";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
-import OTPVerification from "./OTPVerification";
 import SuccessMessage from "./SuccessMessage";
 
 export default function ApplicationForm({ job, onClose }) {
@@ -11,9 +11,9 @@ export default function ApplicationForm({ job, onClose }) {
     phone: "",
   });
   const [file, setFile] = useState(null);
-  const [stage, setStage] = useState("form"); // form | otp | success
+  const [stage, setStage] = useState("form"); // form | success
   const [message, setMessage] = useState(null);
-  const [tempAppId, setTempAppId] = useState(null); // backend response id
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -24,39 +24,56 @@ export default function ApplicationForm({ job, onClose }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage(null);
+    setSubmitting(true);
+
     try {
-      const jobId = job.id ?? job._id;
+      const jobId = job?.id ?? job?._id ?? null;
+      const dto = {
+        jobId,
+        fullName: form.name,
+        email: form.email,
+        mobileNumber: form.phone,
+      };
+
       const fd = new FormData();
-      fd.append("jobId", jobId);
-      fd.append("fullName", form.name);
-      fd.append("email", form.email);
-      fd.append("mobileNumber", form.phone);
+      // Send DTO as JSON blob named "data" — matches Spring's @RequestPart("data")
+      fd.append(
+        "data",
+        new Blob([JSON.stringify(dto)], { type: "application/json" })
+      );
       if (file) fd.append("resume", file);
 
-      const res = await axios.post(`${BACKEND_BASE_URL}/jobs/apply`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+      // Explicit API path: ensure it matches your Spring controller mapping
+      const url = `${BACKEND_BASE_URL}/career/applyJob`;
+
+      const res = await axios.post(url, fd, {
+        // DO NOT set Content-Type manually; let browser set boundary
+        timeout: 30000,
       });
 
-      if (res.data?.otpSent) {
-        setTempAppId(res.data.applicationId);
-        setStage("otp");
+      // success when backend returns 201 or has success payload
+      if (
+        res.status === 201 ||
+        res.data?.code === 201 ||
+        res.data?.status === "CREATED"
+      ) {
+        setStage("success");
       } else {
-        setMessage({ type: "error", text: "Failed to send OTP." });
+        const backendMsg =
+          res.data?.message || res.data?.msg || "Failed to submit application.";
+        setMessage({ type: "error", text: backendMsg });
       }
     } catch (err) {
-      setMessage({ type: "error", text: "Failed to apply." });
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.response?.data?.msg ||
+        err?.message ||
+        "Failed to apply. Check server logs / network.";
+      setMessage({ type: "error", text: backendMsg });
+    } finally {
+      setSubmitting(false);
     }
-  }
-
-  if (stage === "otp") {
-    return (
-      <OTPVerification
-        appId={tempAppId}
-        email={form.email}
-        onSuccess={() => setStage("success")}
-        onClose={onClose}
-      />
-    );
   }
 
   if (stage === "success") {
@@ -159,9 +176,10 @@ export default function ApplicationForm({ job, onClose }) {
 
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 transition"
+            disabled={submitting}
+            className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 transition disabled:opacity-60"
           >
-            Submit Application
+            {submitting ? "Submitting..." : "Submit Application"}
           </button>
         </form>
       </div>
