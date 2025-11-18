@@ -43,6 +43,12 @@ export default function EmployeeCard({ employee, onActionComplete }) {
         <div className="flex gap-2 mt-3 md:mt-0">
           <button
             onClick={() => setShowView(true)}
+            className="px-3 py-1 bg-orange-300 text-white rounded"
+          >
+            Generate Payslips
+          </button>
+          <button
+            onClick={() => setShowView(true)}
             className="px-3 py-1 bg-sky-600 text-white rounded"
           >
             View Details
