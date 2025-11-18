@@ -8,14 +8,15 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import JobDetails from "./pages/JobDetails";
 import ViewReport from "./pages/ViewReport";
-import Contacts from "./pages/Contacts";
+import Contacts from "./pages/contacts"; // corrected import. it is not accepting Contacts with capital c, so I gave small c.
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/career" element={<Career />} />
-      {/* <Route path="/Contacts" element={<Contacts />} /> */}
+      <Route path="/contacts" element={<Contacts />} />
+      <Route path="/about" element={<About />} />
       <Route path="/career/job/:id" element={<JobDetails />} />{" "}
       <Route path="/contacts" element={<Contacts />} />
       {/* new route */}
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/employee" element={<EmployeeDashboard />} />
       <Route path="/admin/view-report" element={<ViewReport />} />
+      <Route path="/hr/job/:id/applications" element={<JobApplications />} />
     </Routes>
   );
 }

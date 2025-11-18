@@ -40,6 +40,7 @@ export default function Navbar() {
             { to: "/", label: "Home" },
             { to: "/career", label: "Career" },
             { to: "/contacts", label: "Contact" },
+            { to: "/about", label: "About"}
           ].map((item) => (
             <NavLink
               key={item.to}
