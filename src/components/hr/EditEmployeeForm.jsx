@@ -1,119 +1,225 @@
-// src/components/hr/EditEmployeeForm.jsx
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { BACKEND_BASE_URL } from "../../api/config";
+export default function EditEmployeeForm({ employeeId, employeeData, onClose, onUpdated }) {
 
-/**
- * Props:
- * - employeeId (required)
- * - onClose()
- * - onUpdated()
- */
-export default function EditEmployeeForm({ employeeId, onClose, onUpdated }) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  
+  const [form, setForm] = useState({
+    firstName: employeeData.firstName || "",
+    lastName: employeeData.lastName || "",
+    email: employeeData.email || "",
+    mobile: employeeData.mobile || "",
+    cardNumber: employeeData.cardNumber || "",
+    jobRole: employeeData.jobRole || "",
+    domain: employeeData.domain || "",
+    gender: employeeData.gender || "",
+    salary: employeeData.salary || "",
+    paidLeaves: employeeData.paidLeaves || "",
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    axios
-      .get(`${BACKEND_BASE_URL}/employees/${employeeId}`)
-      .then((res) => {
-        if (!mounted) return;
-        setForm({
-          name: res.data.name || "",
-          email: res.data.email || "",
-          phone: res.data.phone || "",
-        });
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!mounted) return;
-        setLoading(false);
-      });
-    return () => (mounted = false);
-  }, [employeeId]);
-
-  function handle(e) {
-    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function submit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setSubmitting(true);
+
     try {
-      await axios.put(`${BACKEND_BASE_URL}/employees/${employeeId}`, form);
-      onUpdated?.();
-      onClose?.();
+      const res = await fetch(
+        `${BACKEND_BASE_URL}/hr/update/${employeeId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message || "Update failed");
+        return;
+      }
+
+      alert("Employee updated successfully");
+
+      onUpdated?.(result.data);
     } catch (err) {
-      console.error(err);
-      alert("Failed to update employee.");
-    } finally {
-      setSubmitting(false);
+      console.log(err);
     }
   }
 
-  if (loading) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative max-w-md w-full bg-white rounded shadow p-6 z-10">
-        <div className="flex justify-between">
-          <h3 className="text-lg font-semibold">Edit Employee</h3>
-          <button onClick={onClose} className="text-gray-500">
-            ✕
-          </button>
-        </div>
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          <label className="block">
-            <span className="text-sm">Name</span>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handle}
-              className="mt-1 block w-full px-3 py-2 border rounded"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm">Email</span>
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handle}
-              className="mt-1 block w-full px-3 py-2 border rounded"
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm">Phone</span>
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handle}
-              className="mt-1 block w-full px-3 py-2 border rounded"
-            />
-          </label>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative">
 
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-2 bg-gray-100 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-indigo-600 text-white rounded"
-            >
-              {submitting ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </form>
+        {/* Scrollable container */}
+        <div className="max-h-[85vh] overflow-y-auto p-6">
+
+          <h2 className="text-2xl font-semibold text-center text-sky-700 mb-6">
+            Edit Employee Details
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  name="firstName"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  name="lastName"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Mobile */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mobile Number
+              </label>
+              <input
+                name="mobile"
+                value={form.mobile}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Card Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Card Number
+              </label>
+              <input
+                name="cardNumber"
+                value={form.cardNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Job Role */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Role
+              </label>
+              <input
+                name="jobRole"
+                value={form.jobRole}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Domain */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Domain
+              </label>
+              <input
+                name="domain"
+                value={form.domain}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gender
+              </label>
+              <select
+                name="gender"
+                value={form.gender}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              >
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {/* Salary */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Salary (₹)
+              </label>
+              <input
+                type="number"
+                name="salary"
+                value={form.salary}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Paid Leaves */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Paid Leaves
+              </label>
+              <input
+                type="number"
+                name="paidLeaves"
+                value={form.paidLeaves}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                onClick={onClose}
+                type="button"
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-md"
+              >
+                Save Changes
+              </button>
+            </div>
+
+          </form>
+        </div>
+
       </div>
     </div>
   );

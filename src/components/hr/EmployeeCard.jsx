@@ -2,6 +2,7 @@ import { useState } from "react";
 import ViewEmployeeModal from "./ViewEmployeeModal";
 import AttendanceForm from "./AttendanceForm";
 import PayslipListModal from "./PayslipListModal";
+import GeneratePayslipModal from "./GeneratePayslipModal"; // ⬅ added
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
 
@@ -10,6 +11,7 @@ export default function EmployeeCard({ employee, onActionComplete }) {
   const [showView, setShowView] = useState(false);
   const [showAttendance, setShowAttendance] = useState(false);
   const [showPayslips, setShowPayslips] = useState(false);
+  const [showPayslipGenerator, setShowPayslipGenerator] = useState(false); // ⬅ added
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
@@ -41,30 +43,36 @@ export default function EmployeeCard({ employee, onActionComplete }) {
         </div>
 
         <div className="flex gap-2 mt-3 md:mt-0">
+
+          {/* ✅ Generate Payslip Button Updated */}
           <button
-            onClick={() => setShowView(true)}
+            onClick={() => setShowPayslipGenerator(true)}
             className="px-3 py-1 bg-orange-300 text-white rounded"
           >
             Generate Payslips
           </button>
+
           <button
             onClick={() => setShowView(true)}
             className="px-3 py-1 bg-sky-600 text-white rounded"
           >
             View Details
           </button>
+
           <button
             onClick={() => setShowAttendance(true)}
             className="px-3 py-1 bg-emerald-600 text-white rounded"
           >
             Add Attendance
           </button>
+
           <button
             onClick={() => setShowPayslips(true)}
             className="px-3 py-1 bg-gray-700 text-white rounded"
           >
             Payslips
           </button>
+
           <button
             onClick={handleDelete}
             disabled={deleting}
@@ -72,6 +80,7 @@ export default function EmployeeCard({ employee, onActionComplete }) {
           >
             {deleting ? "Deleting..." : "Delete"}
           </button>
+
         </div>
       </div>
 
@@ -95,6 +104,15 @@ export default function EmployeeCard({ employee, onActionComplete }) {
         <PayslipListModal
           employee={employee}
           onClose={() => setShowPayslips(false)}
+        />
+      )}
+
+      {/* ✅ NEW PAYSILP MODAL */}
+      {showPayslipGenerator && (
+        <GeneratePayslipModal
+          employeeId={employee.id}
+          onClose={() => setShowPayslipGenerator(false)}
+          onGenerated={onActionComplete}
         />
       )}
     </>

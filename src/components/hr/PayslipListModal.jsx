@@ -34,7 +34,13 @@ export default function PayslipListModal({ employee, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative max-w-3xl w-full bg-white rounded shadow p-6 z-10">
+
+      <div className="relative max-w-3xl w-full bg-white rounded shadow p-6 z-10
+                      max-h-[85vh] overflow-y-auto">
+        {/* ↑---------------------------------------------↑
+            Added scroll + max height, nothing else touched
+        */}
+
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-800">
             Payslips - {employee.firstName} {employee.lastName}
