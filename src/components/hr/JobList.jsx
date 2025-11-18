@@ -16,7 +16,6 @@ export default function JobList({ refreshKey = 0 }) {
       .then((res) => {
         if (!mounted) return;
         const data = Array.isArray(res.data.data) ? res.data.data : [];
-        console.log(data);
         setJobs(data);
       })
       .catch((err) => {
@@ -31,6 +30,16 @@ export default function JobList({ refreshKey = 0 }) {
     return () => (mounted = false);
   }, [refreshKey]);
 
+  // Handler passed to JobCard so it can remove itself from UI after successful delete
+  function handleJobDeleted(deletedId) {
+    setJobs((prev) =>
+      prev.filter((j) => {
+        const jid = j.id ?? j._id;
+        return String(jid) !== String(deletedId);
+      })
+    );
+  }
+
   if (loading) return <div className="p-3 border rounded">Loading jobs...</div>;
   if (!jobs.length)
     return (
@@ -42,7 +51,7 @@ export default function JobList({ refreshKey = 0 }) {
   return (
     <div className="space-y-3 mt-3">
       {jobs.map((j) => (
-        <JobCard key={j.id ?? j._id} job={j} />
+        <JobCard key={j.id ?? j._id} job={j} onJobDeleted={handleJobDeleted} />
       ))}
     </div>
   );
