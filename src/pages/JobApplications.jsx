@@ -84,23 +84,33 @@ export default function JobApplications() {
   }
 
   // Confirmed action handler (select or reject)
-  async function performStatusChange(app, status) {
+  // NOTE: backend expects PUT /job/updateStatus/{applicationId}/{status} where status is boolean (true = shortlisted)
+  async function performStatusChange(app, action) {
     setConfirmAction(null);
     setUpdatingAppId(app.id);
+
+    const isSelect =
+      action === "SELECTED" || action === "SELECT" || action === "SHORTLIST";
+    // Map to backend boolean path value
+    const boolStatus = isSelect ? true : false;
+    // Local optimistic status string that matches backend values
+    const optimisticStatus = isSelect ? "SHORTLISTED" : "REJECTED";
+
+    // Save previous status to restore on error
     const previous = applications.find((a) => String(a.id) === String(app.id));
-    updateApplicationLocally(app.id, { status });
+
+    // Optimistically update UI
+    updateApplicationLocally(app.id, { status: optimisticStatus });
 
     try {
-      await axios.patch(
-        `${BACKEND_BASE_URL.replace(/\/$/, "")}/hr/application/${
-          app.id
-        }/status`,
-        {
-          status,
-        }
-      );
+      // Construct URL carefully: remove trailing slash on BACKEND_BASE_URL if present
+      const url = `${BACKEND_BASE_URL}/hr/job/updateStatus/${app.id}/${boolStatus}`;
+
+      // Call backend with PUT (no body expected per your backend controller)
+      await axios.put(url);
     } catch (err) {
       console.error("Status update failed:", err);
+      // restore previous status
       updateApplicationLocally(app.id, { status: previous?.status });
       alert("Could not update application status. See console for details.");
     } finally {
@@ -194,7 +204,7 @@ export default function JobApplications() {
   );
 }
 
-/* ---------- ApplicationRow component (unchanged) ---------- */
+/* ---------- ApplicationRow component (unchanged apart from using passed props) ---------- */
 function ApplicationRow({
   app,
   onViewDetails,

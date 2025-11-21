@@ -23,7 +23,7 @@ export default function JobCard({ job, onJobDeleted }) {
     try {
       setDeleting(true);
       // Adjust endpoint if your backend uses different path for HR delete
-      await axios.delete(`${BACKEND_BASE_URL}/hr/job/${id}`);
+      await axios.delete(`${BACKEND_BASE_URL}/hr/job/delete/${id}`);
       // inform parent to remove from list
       if (typeof onJobDeleted === "function") onJobDeleted(id);
     } catch (err) {
