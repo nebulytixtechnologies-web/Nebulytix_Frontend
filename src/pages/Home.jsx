@@ -196,12 +196,10 @@ export default function Home() {
     <div className="grid grid-cols-2 md:grid-cols-6 gap-8 text-center">
 
       {[
-        { name: "JAVA", icon: <Code2 size={32} className="mx-auto mb-3" /> },
-        { name: "REACT", icon: <Cpu size={32} className="mx-auto mb-3" /> },
-        { name: "Node.js", icon: <Server size={32} className="mx-auto mb-3" /> },
-        { name: "Python", icon: <Braces size={32} className="mx-auto mb-3" /> },
-        { name: "Docker", icon: <Boxes size={32} className="mx-auto mb-3" /> },
-        { name: "DATA ANALYST", icon: <BarChart3 size={32} className="mx-auto mb-3" /> },
+        "JAVA", "REACT", "Node.js",
+     "Python", "DotNet", "AWS",
+        "Docker","MongoDB",
+        "MySQL", "DATAANALYST"
       ].map((tech, i) => (
         <motion.div
           key={i}

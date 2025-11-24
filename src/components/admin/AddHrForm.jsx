@@ -375,7 +375,7 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded">
               {/* LEFT column (5 fields) */}
               <div className="space-y-3">
-                <label className="block">
+                {/* <label className="block">
                   <span className="text-sm text-gray-700">Days Present</span>
                   <input
                     name="daysPresent"
@@ -384,7 +384,7 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
                     onChange={handleInput}
                     className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
                   />
-                </label>
+                </label> */}
 
                 <label className="block">
                   <span className="text-sm text-gray-700">Paid Leaves</span>

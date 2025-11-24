@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
+import { Pencil } from "lucide-react";
 
 export default function HrInfo({ role = "hr", refreshKey = 0 }) {
   const [profile, setProfile] = useState(null);
@@ -57,8 +58,8 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-        const body = res.data;
-        const unwrapped = body?.data ?? body;
+        
+        const unwrapped = res.data?.data ?? res.data;
         if (mounted) setProfile(unwrapped);
       } catch (err) {
         console.warn("Profile fetch error", err);
@@ -73,6 +74,36 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
       mounted = false;
     };
   }, [LOCAL_KEY, refreshKey, role]);
+
+  // Existing Profile Fetch Logic
+
+  async function handlePhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file || !profile.id) return;
+
+    const formData = new FormData();
+    formData.apppend("file", file);
+
+    try {
+       const res = await axios.post(
+        `${BACKEND_BASE_URL}/hr/upload-photo/${profile.id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      const newUrl = res.data.photoUrl;
+
+        // Update UI
+      const updatedProfile = { ...profile, profilePic: newUrl };
+      setProfile(updatedProfile);
+
+      // Update localStorage
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(updatedProfile));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload image");
+    }
+  }
 
   if (loading) {
     return (
@@ -112,15 +143,45 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
     joiningDate,
     daysPresent,
     paidLeaves,
+    profilePic,
   } = profile;
 
   return (
     <div className="p-4 bg-white rounded shadow flex gap-6">
-      {/* Left: Image & Name */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="h-24 w-24 rounded-full bg-sky-100 flex items-center justify-center text-2xl font-semibold text-sky-700">
-          {firstName ? firstName.charAt(0).toUpperCase() : "U"}
+
+      {/* Left: Profile Image + Upload Button */}
+      <div className="flex flex-col items-center gap-2 relative">
+
+        {/* profile photo */}
+        <div className="relative">
+          <img
+            src={
+              profilePic
+                ? profilePic
+                : `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`
+            }
+            alt="Profile"
+            className="h-24 w-24 rounded-full object-cover border shadow"
+          />
+
+          {/* EDIT BUTTON */}
+          <label
+            htmlFor="upload-photo"
+            className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow cursor-pointer hover:bg-gray-100"
+          >
+            <Pencil className="w-4 h-4 text-sky-700" />
+          </label>
+
+          <input
+            id="upload-photo"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
         </div>
+
+
         <div className="text-lg font-semibold text-center">
           {firstName ?? ""} {lastName ?? ""}
         </div>
