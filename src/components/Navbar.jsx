@@ -1,13 +1,15 @@
 // src/components/Navbar.jsx
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { ShieldCheck, Users, User, LogIn } from "lucide-react";
+import { ShieldCheck, Users, User, LogIn, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../assets/images/nebulytixLogo.jpg";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const roleIcons = {
     admin: <ShieldCheck size={16} className="text-[#0D243C]" />,
@@ -22,7 +24,7 @@ export default function Navbar() {
       transition={{ duration: 0.6 }}
       className="bg-white shadow-sm sticky top-0 z-40 backdrop-blur-lg"
     >
-      <div className="container mx-auto px-6 py-2 flex items-center justify-between">
+      <div className="container px-14 py-2 flex items-center justify-between ">
 
         {/* Logo */}
         <motion.div
@@ -31,11 +33,16 @@ export default function Navbar() {
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 250 }}
         >
-          <img src={logo} alt="logo" className="h-20 w-20 object-contain" />
+          <img 
+            src={logo} 
+            alt="logo" 
+            className="h-20 w-auto object-contain" 
+            style={{ imageRendering: "high-quality" }}
+            />
         </motion.div>
 
         {/* Nav Links */}
-        <div className="hidden md:flex gap-10 text-[16px] font-medium">
+        <div className="hidden md:flex gap-10 text-[16px] font-medium justify-between ">
           {[
             { to: "/", label: "Home" },
             { to: "/career", label: "Career" },
@@ -61,7 +68,7 @@ export default function Navbar() {
         </div>
 
         {/* LOGIN DROPDOWN */}
-        <Menu as="div" className="relative inline-block text-left">
+        <Menu as="div" className="relative inline-block text-left ml-72">
           {({ open }) => (
             <>
               {/* BUTTON */}
@@ -73,7 +80,7 @@ export default function Navbar() {
                 <LogIn size={16} />
                 Login
                 <ChevronDownIcon
-                  className={`h-4 w-4 text-white transition-transform ${
+                  className={` h-4 w-4 text-white transition-transform ${
                     open ? "rotate-180" : "rotate-0"
                   }`}
                 />

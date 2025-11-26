@@ -36,9 +36,6 @@ import {
 
 
 
-
-
-
 export default function Home() {
   const images = [hero1, hero2, hero3, NEB1 , NEB2, NEB3];
 
@@ -51,6 +48,19 @@ export default function Home() {
     hidden: { opacity: 0, scale: 0.9 },
     show: { opacity: 1, scale: 1, transition: { duration: 0.7 } },
   };
+
+    const technologies = [
+    { name: "Java", icon: <Braces className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "React", icon: <Code2 className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "Node.js", icon: <Server className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "Python", icon: <Cpu className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: ".NET", icon: <Boxes className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "AWS", icon: <BarChart3 className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "Docker", icon: <Boxes className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "MongoDB", icon: <Server className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "MySQL", icon: <Server className="w-8 h-8 mx-auto text-blue-700" /> },
+    { name: "Data Analyst", icon: <BarChart3 className="w-8 h-8 mx-auto text-blue-700" /> },
+  ];
 
   return (
     <div className="bg-gray-50 text-gray-900 overflow-hidden">
@@ -128,11 +138,6 @@ export default function Home() {
         </motion.div>
       </section>   
 
-
-
-
-      
-
       {/* SERVICES */}
       <section className="container mx-auto px-6 py-20">
         <motion.h2
@@ -182,10 +187,14 @@ export default function Home() {
 
 
       {/* TECHNOLOGIES */}
-<section className="bg-gray-100 py-20">
-  <div className="container mx-auto px-6">
-    <motion.h2 variants={fadeIn} initial="hidden" whileInView="show" viewport={{ once: true }}
-      className="text-4xl font-bold text-center">
+    <section className="bg-gray-100 py-20">
+    <div className="container mx-auto px-6">
+    <motion.h2 
+    variants={fadeIn} 
+    initial="hidden" 
+    whileInView="show" 
+    viewport={{ once: true }}
+    className="text-4xl font-bold text-center">
       Technologies We Work With
     </motion.h2>
 
@@ -195,12 +204,7 @@ export default function Home() {
 
     <div className="grid grid-cols-2 md:grid-cols-6 gap-8 text-center">
 
-      {[
-        "JAVA", "REACT", "Node.js",
-     "Python", "DotNet", "AWS",
-        "Docker","MongoDB",
-        "MySQL", "DATAANALYST"
-      ].map((tech, i) => (
+      {technologies.map((tech, i) => (
         <motion.div
           key={i}
           variants={scaleUp}
