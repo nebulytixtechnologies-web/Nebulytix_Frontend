@@ -10,8 +10,9 @@ export default function ApplicationForm({ job, onClose }) {
     email: "",
     phone: "",
   });
+
   const [file, setFile] = useState(null);
-  const [stage, setStage] = useState("form"); // form | success
+  const [stage, setStage] = useState("form");
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,6 +29,7 @@ export default function ApplicationForm({ job, onClose }) {
 
     try {
       const jobId = job?.id ?? job?._id ?? null;
+
       const dto = {
         jobId,
         fullName: form.name,
@@ -36,22 +38,12 @@ export default function ApplicationForm({ job, onClose }) {
       };
 
       const fd = new FormData();
-      // Send DTO as JSON blob named "data" — matches Spring's @RequestPart("data")
-      fd.append(
-        "data",
-        new Blob([JSON.stringify(dto)], { type: "application/json" })
-      );
+      fd.append("data", new Blob([JSON.stringify(dto)], { type: "application/json" }));
       if (file) fd.append("resume", file);
 
-      // Explicit API path: ensure it matches your Spring controller mapping
       const url = `${BACKEND_BASE_URL}/career/applyJob`;
+      const res = await axios.post(url, fd, { timeout: 30000 });
 
-      const res = await axios.post(url, fd, {
-        // DO NOT set Content-Type manually; let browser set boundary
-        timeout: 30000,
-      });
-
-      // success when backend returns 201 or has success payload
       if (
         res.status === 201 ||
         res.data?.code === 201 ||
@@ -59,9 +51,10 @@ export default function ApplicationForm({ job, onClose }) {
       ) {
         setStage("success");
       } else {
-        const backendMsg =
-          res.data?.message || res.data?.msg || "Failed to submit application.";
-        setMessage({ type: "error", text: backendMsg });
+        setMessage({
+          type: "error",
+          text: res.data?.message || "Failed to submit application.",
+        });
       }
     } catch (err) {
       const backendMsg =
@@ -69,7 +62,7 @@ export default function ApplicationForm({ job, onClose }) {
         err?.response?.data?.error ||
         err?.response?.data?.msg ||
         err?.message ||
-        "Failed to apply. Check server logs / network.";
+        "Failed to apply.";
       setMessage({ type: "error", text: backendMsg });
     } finally {
       setSubmitting(false);
@@ -81,109 +74,86 @@ export default function ApplicationForm({ job, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 flex items-start justify-center pt-28 bg-black/40 z-50">
+    <div className="bg-white p-6 rounded-xl shadow-md border">
 
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">
-          Apply for "{job?.jobTitle || "Selected Role"}"
-        </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+        Apply for "{job?.jobTitle || "Selected Role"}"
+      </h2>
 
-        {message && (
-          <div
-            className={`p-2 mb-2 rounded ${
-              message.type === "error"
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
+      {message && (
+        <div
+          className={`p-3 mb-4 rounded ${
+            message.type === "error"
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
-          <div className="relative">
-            <input
-              id="name"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder=" "
-              required
-              className="peer w-full border-b-2 border-gray-300 py-2 px-0 text-gray-900 focus:outline-none focus:border-green-600"
-            />
-            <label
-              htmlFor="name"
-              className="absolute left-0 px-0 text-gray-500 duration-200 transform -translate-y-3 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-green-600"
-            >
-              Full Name
-            </label>
-          </div>
+      {/* FORM (SIDE-BY-SIDE SAFE LAYOUT) */}
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Email */}
-          <div className="relative">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder=" "
-              required
-              className="peer w-full border-b-2 border-gray-300 py-2 px-0 text-gray-900 focus:outline-none focus:border-green-600"
-            />
-            <label
-              htmlFor="email"
-              className="absolute left-0 px-0 text-gray-500 duration-200 transform -translate-y-3 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-green-600"
-            >
-              Email
-            </label>
-          </div>
+        {/* Full Name */}
+        <div>
+          <label className="block font-medium mb-1">Full Name *</label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2 rounded focus:border-blue-600"
+            placeholder="Enter your full name"
+          />
+        </div>
 
-          {/* Mobile Number */}
-          <div className="relative">
-            <input
-              id="phone"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder=" "
-              className="peer w-full border-b-2 border-gray-300 py-2 px-0 text-gray-900 focus:outline-none focus:border-green-600"
-            />
-            <label
-              htmlFor="phone"
-              className="absolute left-0 px-0 text-gray-500 duration-200 transform -translate-y-3 scale-75 top-3 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-green-600"
-            >
-              Mobile Number
-            </label>
-          </div>
+        {/* Email */}
+        <div>
+          <label className="block font-medium mb-1">Email *</label>
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2 rounded focus:border-blue-600"
+            placeholder="Enter your email"
+          />
+        </div>
 
-          {/* Resume File Upload */}
-          <div className="relative pt-4">
-            <label
-              htmlFor="resume"
-              className="block mb-1 font-medium text-gray-700"
-            >
-              Resume
-            </label>
-            <input
-              id="resume"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleFile}
-              className="w-full"
-            />
-          </div>
+        {/* Phone */}
+        <div>
+          <label className="block font-medium mb-1">Mobile Number</label>
+          <input
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded focus:border-blue-600"
+            placeholder="Enter mobile number"
+          />
+        </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 transition disabled:opacity-60"
-          >
-            {submitting ? "Submitting..." : "Submit Application"}
-          </button>
-        </form>
-      </div>
+        {/* Resume */}
+        <div>
+          <label className="block font-medium mb-1">Resume *</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={handleFile}
+            className="w-full border px-3 py-2 rounded"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="bg-blue-600 text-white w-full py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-60"
+        >
+          {submitting ? "Submitting..." : "Submit Application"}
+        </button>
+      </form>
     </div>
   );
 }

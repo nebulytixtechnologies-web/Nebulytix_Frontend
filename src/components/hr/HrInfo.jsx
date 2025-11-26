@@ -1,7 +1,7 @@
 // src/components/hr/HrInfo.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { BACKEND_BASE_URL } from "../../api/config";
+import { BACKEND_BASE_URL, BASE_URL } from "../../api/config";
 import { Pencil } from "lucide-react";
 
 export default function HrInfo({ role = "hr", refreshKey = 0 }) {
@@ -23,6 +23,7 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
       setLoading(true);
       setError(null);
 
+      // 1) Try localStorage first
       try {
         const raw = localStorage.getItem(LOCAL_KEY);
         if (raw) {
@@ -37,6 +38,7 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
         console.warn("Failed to read profile from localStorage", e);
       }
 
+      // 2) Fetch from backend if token is available
       const token = localStorage.getItem("neb_token");
       if (!token) {
         if (mounted) {
@@ -58,7 +60,7 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-        
+
         const unwrapped = res.data?.data ?? res.data;
         if (mounted) setProfile(unwrapped);
       } catch (err) {
@@ -75,33 +77,60 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
     };
   }, [LOCAL_KEY, refreshKey, role]);
 
-  // Existing Profile Fetch Logic
+  // Helper: ensure a URL is resolvable by browser.
+  function resolveImageUrl(url) {
+    if (!url) return null;
+    // If already absolute (http/https), return as-is
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    // If relative (starts with '/'), prefix with BASE_URL
+    if (url.startsWith("/")) return `${BASE_URL}${url}`;
+    // Otherwise attempt to prefix BACKEND_BASE_URL (fallback)
+    return `${BASE_URL}/${url}`;
+  }
 
+  // Profile Image Upload
   async function handlePhotoUpload(e) {
     const file = e.target.files[0];
-    if (!file || !profile.id) return;
+    if (!file || !profile?.id) return;
 
     const formData = new FormData();
-    formData.apppend("file", file);
+    formData.append("profileImage", file); // backend expects 'profileImage'
 
     try {
-       const res = await axios.post(
-        `${BACKEND_BASE_URL}/hr/upload-photo/${profile.id}`,
+      const token = localStorage.getItem("neb_token");
+      const res = await axios.put(
+        `${BACKEND_BASE_URL}/employee/${profile.id}/profile-picture`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          withCredentials: true,
+        }
       );
 
-      const newUrl = res.data.photoUrl;
+      // Backend might return raw path ("/uploads/..") or a ResponseMessage with data field.
+      const newUrlRaw = res.data?.data ?? res.data;
+      // Normalize to an absolute URL for display.
+      const newUrl =
+        typeof newUrlRaw === "string" ? resolveImageUrl(newUrlRaw) : null;
 
-        // Update UI
-      const updatedProfile = { ...profile, profilePic: newUrl };
+      // Update UI & localStorage
+      const updatedProfile = {
+        ...profile,
+        profilePictureUrl: newUrlRaw ?? profile.profilePictureUrl,
+      };
       setProfile(updatedProfile);
-
-      // Update localStorage
       localStorage.setItem(LOCAL_KEY, JSON.stringify(updatedProfile));
+
+      // Notify other parts of the app
+      window.dispatchEvent(
+        new CustomEvent("profileUpdated", { detail: updatedProfile })
+      );
     } catch (err) {
-      console.error(err);
-      alert("Failed to upload image");
+      console.error("Upload failed:", err);
+      alert("Failed to upload image. Check console for details.");
     }
   }
 
@@ -143,25 +172,28 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
     joiningDate,
     daysPresent,
     paidLeaves,
-    profilePic,
+    profilePictureUrl,
   } = profile;
+
+  // Decide final image src to render
+  // profilePictureUrl from backend might be relative ("/uploads/...") OR already full URL.
+  const displayImageSrc = profilePictureUrl
+    ? resolveImageUrl(profilePictureUrl)
+    : `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`;
 
   return (
     <div className="p-4 bg-white rounded shadow flex gap-6">
-
       {/* Left: Profile Image + Upload Button */}
       <div className="flex flex-col items-center gap-2 relative">
-
-        {/* profile photo */}
         <div className="relative">
           <img
-            src={
-              profilePic
-                ? profilePic
-                : `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`
-            }
+            src={displayImageSrc}
             alt="Profile"
             className="h-24 w-24 rounded-full object-cover border shadow"
+            onError={(e) => {
+              // fallback to avatar if static file fails to load
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`;
+            }}
           />
 
           {/* EDIT BUTTON */}
@@ -181,13 +213,12 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
           />
         </div>
 
-
         <div className="text-lg font-semibold text-center">
           {firstName ?? ""} {lastName ?? ""}
         </div>
       </div>
 
-      {/* Right: Profile details */}
+      {/* Right: Profile details (bank details removed) */}
       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
         <div>
           <div className="text-xs text-gray-500">Email</div>

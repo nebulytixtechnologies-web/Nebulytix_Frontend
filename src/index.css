@@ -2,7 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* small global tweaks */
-html, body, #root {
-  height: 100%;
+.nav-btn {
+  @apply flex items-center gap-3 p-3 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition;
+}
+
+.sub-nav-btn {
+  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100;
+}
+
+.icon {
+  @apply w-5 h-5;
+}
+
+.card {
+  @apply bg-white p-6 rounded-xl shadow-md border border-gray-200;
+}
+
+.section-title {
+  @apply text-xl font-semibold mb-4 text-gray-800;
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn .25s ease-out;
 }

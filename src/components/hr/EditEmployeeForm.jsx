@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { BACKEND_BASE_URL } from "../../api/config";
-export default function EditEmployeeForm({ employeeId, employeeData, onClose, onUpdated }) {
 
-  
+export default function EditEmployeeForm({
+  employeeId,
+  employeeData,
+  onClose,
+  onUpdated,
+}) {
   const [form, setForm] = useState({
     firstName: employeeData.firstName || "",
     lastName: employeeData.lastName || "",
@@ -14,6 +18,16 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
     gender: employeeData.gender || "",
     salary: employeeData.salary || "",
     paidLeaves: employeeData.paidLeaves || "",
+
+    bankName: employeeData.bankName || "",
+    bankAccountNumber: employeeData.bankAccountNumber || "",
+    ifscCode: employeeData.ifscCode || "",
+
+    pfNumber: employeeData.pfNumber || "",
+    uanNumber: employeeData.uanNumber || "",
+    epsNumber: employeeData.epsNumber || "",
+    esiNumber: employeeData.esiNumber || "",
+    panNumber: employeeData.panNumber || "",
   });
 
   function handleChange(e) {
@@ -24,14 +38,11 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
     e.preventDefault();
 
     try {
-      const res = await fetch(
-        `${BACKEND_BASE_URL}/hr/update/${employeeId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        }
-      );
+      const res = await fetch(`${BACKEND_BASE_URL}/hr/update/${employeeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
       const result = await res.json();
 
@@ -41,7 +52,6 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
       }
 
       alert("Employee updated successfully");
-
       onUpdated?.(result.data);
     } catch (err) {
       console.log(err);
@@ -52,7 +62,22 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative">
 
-        {/* Scrollable container */}
+        {/* 🔹 Updated Top-Right Close Button (Square + Red + Offset) */}
+        <button
+          onClick={onClose}
+          className="
+            absolute top-3 right-5
+            w-8 h-8 flex items-center justify-center
+            bg-white border border-gray-300
+            hover:bg-red-100
+            text-red-600 hover:text-red-700
+            rounded-md
+            shadow-sm transition
+          "
+        >
+          ✕
+        </button>
+
         <div className="max-h-[85vh] overflow-y-auto p-6">
 
           <h2 className="text-2xl font-semibold text-center text-sky-700 mb-6">
@@ -61,7 +86,7 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Name Fields */}
+            {/* BASIC INFO */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -71,7 +96,8 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                   name="firstName"
                   value={form.firstName}
                   onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                  className="w-full border rounded-md px-3 py-2
+                           focus:ring-2 focus:ring-sky-400 outline-none"
                 />
               </div>
 
@@ -83,12 +109,13 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                   name="lastName"
                   value={form.lastName}
                   onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                  className="w-full border rounded-md px-3 py-2
+                           focus:ring-2 focus:ring-sky-400 outline-none"
                 />
               </div>
             </div>
 
-            {/* Email */}
+            {/* EMAIL */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -98,11 +125,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Mobile */}
+            {/* MOBILE */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Mobile Number
@@ -111,11 +139,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="mobile"
                 value={form.mobile}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Card Number */}
+            {/* CARD NUMBER */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Card Number
@@ -124,11 +153,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="cardNumber"
                 value={form.cardNumber}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Job Role */}
+            {/* JOB ROLE */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Job Role
@@ -137,11 +167,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="jobRole"
                 value={form.jobRole}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Domain */}
+            {/* DOMAIN */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Domain
@@ -150,11 +181,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="domain"
                 value={form.domain}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Gender */}
+            {/* GENDER */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Gender
@@ -163,7 +195,8 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="gender"
                 value={form.gender}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               >
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
@@ -171,7 +204,7 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
               </select>
             </div>
 
-            {/* Salary */}
+            {/* SALARY */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Salary (₹)
@@ -181,11 +214,12 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="salary"
                 value={form.salary}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Paid Leaves */}
+            {/* PAID LEAVES */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Paid Leaves
@@ -195,11 +229,126 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
                 name="paidLeaves"
                 value={form.paidLeaves}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-sky-400 outline-none"
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
               />
             </div>
 
-            {/* Buttons */}
+            {/* BANK DETAILS */}
+            <h3 className="text-lg font-semibold text-sky-700 pt-4">
+              Bank Details
+            </h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Bank Name
+              </label>
+              <input
+                name="bankName"
+                value={form.bankName}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Account Number
+              </label>
+              <input
+                name="bankAccountNumber"
+                value={form.bankAccountNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                IFSC Code
+              </label>
+              <input
+                name="ifscCode"
+                value={form.ifscCode}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* STATUTORY */}
+            <h3 className="text-lg font-semibold text-sky-700 pt-4">
+              Statutory Details
+            </h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PF Number
+              </label>
+              <input
+                name="pfNumber"
+                value={form.pfNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                UAN Number
+              </label>
+              <input
+                name="uanNumber"
+                value={form.uanNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                EPS Number
+              </label>
+              <input
+                name="epsNumber"
+                value={form.epsNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ESI Number
+              </label>
+              <input
+                name="esiNumber"
+                value={form.esiNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PAN Number
+              </label>
+              <input
+                name="panNumber"
+                value={form.panNumber}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2
+                         focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            </div>
+
+            {/* BUTTONS */}
             <div className="flex justify-end gap-3 pt-4">
               <button
                 onClick={onClose}
@@ -219,7 +368,6 @@ export default function EditEmployeeForm({ employeeId, employeeData, onClose, on
 
           </form>
         </div>
-
       </div>
     </div>
   );
