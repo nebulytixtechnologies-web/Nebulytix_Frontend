@@ -5,4 +5,78 @@
 /* small global tweaks */
 html, body, #root {
   height: 100%;
+  /* Glass effect for candidate panel */
+.glass-panel {
+  backdrop-filter: blur(10px) saturate(140%);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+}
+
+/* Slide-in animation */
+@keyframes slideInRight {
+  from { transform: translateX(20%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+  /* ================================================================= */
+/* PROFESSIONAL APPLICATION VIEW PANEL STYLES */
+/* ================================================================= */
+
+.glass-panel {
+  backdrop-filter: blur(10px) saturate(140%);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20%); opacity:0; }
+  to   { transform: translateX(0); opacity:1; }
+}
+
+/* Professional View Panel Extras */
+.view-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.view-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  font-size:20px;
+  color:white;
+  background:linear-gradient(135deg,#2563eb,#06b6d4);
+  box-shadow: 0 6px 20px rgba(38,99,235,0.12);
+}
+
+.view-section {
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+.view-section h4 {
+  margin-bottom:8px;
+  font-weight:600;
+}
+
+.view-meta {
+  color:#6b7280;
+  font-size:13px;
+}
+
+.view-action-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight:600;
+}
+
+}
+
 }
