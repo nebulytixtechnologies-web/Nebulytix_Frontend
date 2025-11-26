@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import HrInfo from "../components/hr/HrInfo";
@@ -10,9 +10,7 @@ import EmployeeList from "../components/hr/EmployeeList";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../api/config";
 
-// Icons
 import {
-  Menu,
   UserPlus,
   Briefcase,
   LogOut,
@@ -20,6 +18,8 @@ import {
   FileText,
   Loader2,
   FileStack,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function HrDashboard() {
@@ -28,11 +28,9 @@ export default function HrDashboard() {
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddJob, setShowAddJob] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dailyReportOpen, setDailyReportOpen] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
-
-  const menuRef = useRef(); // for outside click
 
   const triggerRefresh = () => setRefreshKey((k) => k + 1);
 
@@ -43,170 +41,123 @@ export default function HrDashboard() {
     navigate("/");
   };
 
-  // ⭐ Close BOTH menu & report accordion when clicked outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-        setDailyReportOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
-
-  // ⭐ Generate Daily Report
   const handleGenerateDailyReport = async () => {
     setLoadingReport(true);
-
     try {
-      const res = await axios.post(
-        `${BACKEND_BASE_URL}/hr/dailyReport/generate`
-      );
-
-      if (res.data?.data) {
-        alert("Daily report generated successfully!");
-      } else {
-        alert(res.data.message || "Failed to generate report.");
-      }
+      const res = await axios.post(`${BACKEND_BASE_URL}/hr/dailyReport/generate`);
+      alert(res.data?.data ? "Daily report generated!" : "Failed to generate.");
     } catch (err) {
       alert("Error generating report: " + err.message);
     }
-
     setLoadingReport(false);
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* PAGE TITLE */}
-      <h1 className="text-3xl font-bold text-center text-sky-700 mb-4">
-        HR Dashboard
-      </h1>
+    <div className="flex bg-gray-50 min-h-screen">
 
-      {/* TOP SECTION */}
-      <div className="bg-sky-100 rounded-lg p-6 shadow relative">
-        <div className="flex items-start justify-between w-full">
-          {/* HR INFO */}
-          <div className="flex-1 whitespace-pre-line">
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full
+          ${sidebarOpen ? "w-64" : "w-20"}
+          bg-white border-r shadow-md
+          transition-all duration-300
+          overflow-y-auto
+          z-20
+        `}
+      >
+        <div className="flex items-center justify-between p-5 border-b">
+          {sidebarOpen && <h2 className="text-xl font-semibold text-gray-800">HR Panel</h2>}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded hover:bg-gray-100">
+            {sidebarOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+
+        <nav className="p-4 space-y-2">
+
+  {/* Add Employee */}
+  <button onClick={() => setShowAddEmployee(true)} className="nav-btn">
+    <UserPlus className="icon text-sky-600" />
+    {sidebarOpen && "Add Employee"}
+  </button>
+
+  {/* Add Job */}
+  <button onClick={() => setShowAddJob(true)} className="nav-btn">
+    <Briefcase className="icon text-purple-600" />
+    {sidebarOpen && "Add Job"}
+  </button>
+
+  {/* Daily Report */}
+  <button onClick={() => setDailyReportOpen(!dailyReportOpen)} className="nav-btn justify-between">
+    <span className="flex items-center gap-3">
+      <FileStack className="icon text-blue-600" />
+      {sidebarOpen && "Daily Report"}
+    </span>
+    {sidebarOpen && (
+      <span className="text-xs text-gray-600">{dailyReportOpen ? "▲" : "▼"}</span>
+    )}
+  </button>
+
+  {sidebarOpen && dailyReportOpen && (
+    <div className="ml-10 mt-2 space-y-2">
+      <button onClick={handleGenerateDailyReport} disabled={loadingReport} className="sub-nav-btn">
+        {loadingReport ? (
+          <Loader2 className="animate-spin w-4 h-4 text-green-600" />
+        ) : (
+          <FilePlus className="w-4 h-4 text-green-600" />
+        )}
+        {loadingReport ? "Generating..." : "Generate"}
+      </button>
+
+      <button onClick={() => navigate("/view-daily-report")} className="sub-nav-btn">
+        <FileText className="w-4 h-4 text-purple-600" />
+        View Reports
+      </button>
+    </div>
+  )}
+
+  {/* Logout */}
+  <button onClick={handleLogout} className="nav-btn text-red-600 hover:bg-red-50">
+    <LogOut className="icon text-red-600" />
+    {sidebarOpen && "Logout"}
+  </button>
+
+</nav>
+
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main
+        className={`
+          flex-1 min-h-screen
+          transition-all duration-300
+          ${sidebarOpen ? "ml-64" : "ml-20"}
+        `}
+      >
+        <div className="max-w-6xl mx-auto p-10">
+
+          <h1 className="text-3xl font-bold text-sky-700 mb-10">HR Dashboard</h1>
+
+          {/* HR Info */}
+          <div className="card mb-10">
             <HrInfo role="hr" refreshKey={refreshKey} />
           </div>
 
-          {/* HAMBURGER MENU */}
-          <div className="relative ml-4" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen((prev) => !prev)}
-              className="p-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition shadow"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+          {/* Employees */}
+          <div className="card mb-10">
+            <h2 className="section-title"></h2>
+            <EmployeeList refreshKey={refreshKey} onActionComplete={triggerRefresh} />
+          </div>
 
-            {menuOpen && (
-              <div className="absolute right-0 mt-3 w-64 bg-white border border-gray-200 shadow-xl rounded-xl p-2 z-50 animate-fade-in">
-                {/* ADD EMPLOYEE */}
-                <button
-                  onClick={() => {
-                    setShowAddEmployee(true);
-                    setMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-sky-50 rounded-lg transition"
-                >
-                  <UserPlus size={18} className="text-sky-700" />
-                  Add Employee
-                </button>
-
-                {/* ADD JOB */}
-                <button
-                  onClick={() => {
-                    setShowAddJob(true);
-                    setMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-sky-50 rounded-lg transition"
-                >
-                  <Briefcase size={18} className="text-purple-700" />
-                  Add Job
-                </button>
-
-                {/* DAILY REPORT ACCORDION */}
-                <button
-                  onClick={() => setDailyReportOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full px-4 py-3 hover:bg-gray-100 rounded-lg transition"
-                >
-                  <span className="flex items-center gap-3">
-                    <FileStack size={18} className="text-blue-700" />
-                    Daily Report
-                  </span>
-                  <span className="text-sm">{dailyReportOpen ? "▲" : "▼"}</span>
-                </button>
-
-                {/* ACCORDION CONTENT */}
-                {dailyReportOpen && (
-                  <div className="ml-6 mt-2 space-y-2">
-                    {/* Generate Report */}
-                    <button
-                      onClick={handleGenerateDailyReport}
-                      disabled={loadingReport}
-                      className="flex items-center gap-3 w-full px-3 py-2 text-left rounded-lg hover:bg-gray-50 transition text-sm"
-                    >
-                      {loadingReport ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <FilePlus size={16} className="text-green-600" />
-                      )}
-                      {loadingReport ? "Generating..." : "Generate Report"}
-                    </button>
-
-                    {/* View Reports */}
-                    <button
-                      onClick={() => {
-                        navigate("/view-daily-report");
-                        setMenuOpen(false);
-                      }}
-                      className="flex items-center gap-3 w-full px-3 py-2 text-left rounded-lg hover:bg-gray-50 transition text-sm"
-                    >
-                      <FileText size={16} className="text-purple-600" />
-                      View Reports
-                    </button>
-                  </div>
-                )}
-
-                {/* LOGOUT */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-red-50 rounded-lg text-red-600 transition mt-2"
-                >
-                  <LogOut size={18} />
-                  Logout
-                </button>
-              </div>
-            )}
+          {/* Jobs */}
+          <div className="card mb-10">
+            <h2 className="section-title">Job Posts</h2>
+            <JobList refreshKey={refreshKey} />
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* EMPLOYEE LIST */}
-      <div className="bg-green-50 rounded-lg p-6 shadow">
-        <h2 className="text-2xl font-bold text-green-700 mb-4">Employee List</h2>
-        <EmployeeList
-          refreshKey={refreshKey}
-          onActionComplete={triggerRefresh}
-        />
-      </div>
-
-      {/* JOB LIST */}
-      <div className="bg-purple-50 rounded-lg p-6 shadow">
-        <h2 className="text-2xl font-bold text-purple-700 mb-4">
-          Posted Job List
-        </h2>
-        <JobList refreshKey={refreshKey} />
-      </div>
-
-      {/* ADD EMPLOYEE MODAL */}
+      {/* MODALS */}
       {showAddEmployee && (
         <AddHrForm
           mode="hr"
@@ -218,7 +169,6 @@ export default function HrDashboard() {
         />
       )}
 
-      {/* ADD JOB MODAL */}
       {showAddJob && (
         <AddJobForm
           onClose={() => setShowAddJob(false)}
