@@ -184,6 +184,11 @@ function JobDetailsBody({ loading, job, error, hideApply, onClose }) {
             <p><strong>Type:</strong> {job.jobType}</p>
             <p><strong>Domain:</strong> {job.domain}</p>
 
+            {/* ✔ NEW LOCATION FIELD ADDED HERE */}
+            {job.location && (
+              <p><strong>Location:</strong> {job.location}</p>
+            )}
+
             {job.salaryRange && (
               <p><strong>Salary Range:</strong> {job.salaryRange}</p>
             )}
@@ -208,9 +213,8 @@ function JobDetailsBody({ loading, job, error, hideApply, onClose }) {
           )}
         </section>
 
-        {/* ---------------- RIGHT: Application Form (NO MODAL) ---------------- */}
+        {/* ---------------- RIGHT: Application Form ---------------- */}
         <section className="pl-6">
-          
 
           <ApplicationForm
             job={job}
@@ -218,7 +222,6 @@ function JobDetailsBody({ loading, job, error, hideApply, onClose }) {
             onSuccess={() => {}}
           />
 
-          
         </section>
 
       </div>

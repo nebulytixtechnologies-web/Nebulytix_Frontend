@@ -34,7 +34,7 @@ export default function ApplicationForm({ job, onClose }) {
         jobId,
         fullName: form.name,
         email: form.email,
-        mobileNumber: form.phone,
+        phoneNumber: form.phone,
       };
 
       const fd = new FormData();

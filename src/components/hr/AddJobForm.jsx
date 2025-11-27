@@ -92,39 +92,50 @@ export default function AddJobForm({ onClose, onAdded }) {
               />
             </label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">
-                Job Type
-              </span>
-              <select
-                name="jobType"
-                value={form.jobType}
-                onChange={handleInput}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              >
-                <option value="">Select</option>
-                <option value="FULL_TIME">Full Time</option>
-                <option value="PART_TIME">Part Time</option>
-                <option value="CONTRACT">Contract</option>
-              </select>
-            </label>
+{/* JOB TYPE (left) */}
+<label className="block">
+  <span className="text-sm font-medium text-gray-700">Job Type</span>
+  <select
+    name="jobType"
+    value={form.jobType}
+    onChange={handleInput}
+    className="mt-1 w-full border rounded-md px-3 py-2"
+  >
+    <option value="">Select</option>
+    <option value="FULL_TIME">Full Time</option>
+    <option value="PART_TIME">Part Time</option>
+    <option value="CONTRACT">Contract</option>
+  </select>
+</label>
 
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">
-                Experience Level
-              </span>
-              <select
-                name="experienceLevel"
-                value={form.experienceLevel}
-                onChange={handleInput}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              >
-                <option value="">Select</option>
-                <option value="ENTRY">Entry</option>
-                <option value="MID">Mid</option>
-                <option value="SENIOR">Senior</option>
-              </select>
-            </label>
+{/* ⭐ NEW JOB LOCATION (right side of job type) */}
+<label className="block">
+  <span className="text-sm font-medium text-gray-700">Job Location</span>
+  <input
+    name="location"
+    value={form.location}
+    onChange={handleInput}
+    placeholder="e.g., Pune, Bangalore, Remote"
+    className="mt-1 w-full border rounded-md px-3 py-2"
+  />
+</label>
+
+{/* EXPERIENCE LEVEL moved BELOW and FULL WIDTH */}
+<label className="block md:col-span-2">
+  <span className="text-sm font-medium text-gray-700">Experience Level</span>
+  <select
+    name="experienceLevel"
+    value={form.experienceLevel}
+    onChange={handleInput}
+    className="mt-1 w-full border rounded-md px-3 py-2"
+  >
+    <option value="">Select</option>
+    <option value="ENTRY">Entry</option>
+    <option value="MID">Mid</option>
+    <option value="SENIOR">Senior</option>
+  </select>
+</label>
+
 
             <label className="block md:col-span-2">
               <span className="text-sm font-medium text-gray-700">

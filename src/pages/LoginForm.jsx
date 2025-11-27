@@ -81,9 +81,7 @@ export default function LoginForm() {
         <div className="w-full max-w-md bg-white border rounded-lg shadow p-6">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold">Sign in to Nebulytix</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Sign in as Admin, HR or Employee
-            </p>
+            
           </div>
 
           {!routeRole && (

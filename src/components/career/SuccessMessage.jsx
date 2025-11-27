@@ -1,19 +1,21 @@
 export default function SuccessMessage({ onClose }) {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-      <div className="bg-white p-6 rounded shadow-lg text-center">
-        <div className="text-green-600 text-5xl mb-3">✅</div>
-        <h2 className="text-xl font-semibold mb-2">Application Submitted!</h2>
-        <p className="text-gray-600">
-          Thank you for applying. Our team will review your application soon.
-        </p>
-        <button
-          onClick={onClose}
-          className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Close
-        </button>
-      </div>
+    <div className="p-6 text-center space-y-4 bg-white rounded-xl shadow-md border">
+      <h2 className="text-2xl font-semibold text-green-700">
+        Application Submitted Successfully!
+      </h2>
+
+      <p className="text-gray-700">
+        Thank you for applying. Our team will contact you soon.
+      </p>
+
+      {/* FIX → Closing works now */}
+      <button
+        onClick={onClose}
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+      >
+        Close
+      </button>
     </div>
   );
 }

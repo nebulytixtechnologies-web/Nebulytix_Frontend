@@ -3,17 +3,8 @@ import { useState } from "react";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
 
-/**
- * Two-page modal form (5 fields left / 5 fields right per page)
- *
- * Props:
- * - mode: "admin" | "hr" (defaults to "admin")
- * - onClose()
- * - onAdded()
- */
 export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
   const [form, setForm] = useState({
-    // Page 1 (first 10 fields)
     firstName: "",
     lastName: "",
     email: "",
@@ -24,12 +15,12 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
     gender: "",
     joiningDate: "",
     salary: "",
-    // Page 2 (next 10 fields)
     daysPresent: "",
     paidLeaves: "",
     password: "",
     bankAccountNumber: "",
     bankName: "",
+    ifscCode: "", // ADDED
     pfNumber: "",
     panNumber: "",
     uanNumber: "",
@@ -37,7 +28,7 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
     esiNumber: "",
   });
 
-  const [step, setStep] = useState(1); // 1 or 2
+  const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -48,6 +39,16 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
   function handleInput(e) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
+  }
+
+  // ENTER KEY BEHAVIOR - move to next input instead of submitting
+  function handleEnterKey(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const formEl = e.target.form;
+      const index = Array.prototype.indexOf.call(formEl, e.target);
+      formEl.elements[index + 1]?.focus();
+    }
   }
 
   function validateStep1() {
@@ -109,6 +110,7 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
         password: form.password,
         bankAccountNumber: form.bankAccountNumber,
         bankName: form.bankName,
+        ifscCode: form.ifscCode, // ADDED
         pfNumber: form.pfNumber,
         panNumber: form.panNumber,
         uanNumber: form.uanNumber,
@@ -128,7 +130,6 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
 
       setMessage({ type: "success", text: successMsg });
 
-      // reset form
       setForm({
         firstName: "",
         lastName: "",
@@ -145,6 +146,7 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
         password: "",
         bankAccountNumber: "",
         bankName: "",
+        ifscCode: "",
         pfNumber: "",
         panNumber: "",
         uanNumber: "",
@@ -176,13 +178,11 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-lg"
-            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* progress */}
         <div className="mb-4">
           <div className="flex items-center gap-4">
             <div
@@ -221,108 +221,114 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* PAGE 1 - five left / five right */}
+          {/* PAGE 1 */}
           {step === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded">
-              {/* LEFT column (5 fields) */}
+
               <div className="space-y-3">
                 <label className="block">
-                  <span className="text-sm text-gray-700">First Name *</span>
+                  <span className="text-sm">First Name *</span>
                   <input
                     name="firstName"
                     value={form.firstName}
                     onChange={handleInput}
+                    onKeyDown={handleEnterKey}
                     required
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Email *</span>
+                  <span className="text-sm">Email *</span>
                   <input
                     name="email"
                     type="email"
                     value={form.email}
                     onChange={handleInput}
+                    onKeyDown={handleEnterKey}
                     required
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Card Number</span>
+                  <span className="text-sm">Card Number</span>
                   <input
                     name="cardNumber"
                     value={form.cardNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Domain</span>
+                  <span className="text-sm">Domain</span>
                   <input
                     name="domain"
                     value={form.domain}
                     onChange={handleInput}
-                    placeholder="e.g., Java, .Net, Python"
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Salary</span>
+                  <span className="text-sm">Salary</span>
                   <input
                     name="salary"
                     type="number"
                     step="0.01"
                     value={form.salary}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
               </div>
 
-              {/* RIGHT column (5 fields) */}
               <div className="space-y-3">
                 <label className="block">
-                  <span className="text-sm text-gray-700">Last Name</span>
+                  <span className="text-sm">Last Name</span>
                   <input
                     name="lastName"
                     value={form.lastName}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Mobile</span>
+                  <span className="text-sm">Mobile</span>
                   <input
                     name="mobile"
                     value={form.mobile}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Job Role</span>
+                  <span className="text-sm">Job Role</span>
                   <input
                     name="jobRole"
                     value={form.jobRole}
                     onChange={handleInput}
-                    placeholder="e.g., Developer, Intern"
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Gender</span>
+                  <span className="text-sm">Gender</span>
                   <select
                     name="gender"
                     value={form.gender}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   >
                     <option value="">Select gender</option>
                     <option value="Male">Male</option>
@@ -332,166 +338,162 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Joining Date</span>
+                  <span className="text-sm">Joining Date</span>
                   <input
                     name="joiningDate"
                     type="date"
                     value={form.joiningDate}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
               </div>
 
-              {/* Buttons full-width */}
               <div className="md:col-span-2 flex justify-between mt-2">
-                <div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2 bg-gray-200 rounded"
+                >
+                  Cancel
+                </button>
 
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (validateStep1()) setStep(2);
-                    }}
-                    className="px-5 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  >
-                    Next →
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => validateStep1() && setStep(2)}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded"
+                >
+                  Next →
+                </button>
               </div>
             </div>
           )}
 
-          {/* PAGE 2 - five left / five right */}
+          {/* PAGE 2 */}
           {step === 2 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded">
-              {/* LEFT column (5 fields) */}
-              <div className="space-y-3">
-                {/* <label className="block">
-                  <span className="text-sm text-gray-700">Days Present</span>
-                  <input
-                    name="daysPresent"
-                    type="number"
-                    value={form.daysPresent}
-                    onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
-                  />
-                </label> */}
 
+              {/* LEFT COLUMN */}
+              <div className="space-y-3">
+
+                {/* Bank Name */}
                 <label className="block">
-                  <span className="text-sm text-gray-700">Paid Leaves</span>
+                  <span className="text-sm">Bank Name</span>
                   <input
-                    name="paidLeaves"
-                    type="number"
-                    value={form.paidLeaves}
+                    name="bankName"
+                    value={form.bankName}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
+                {/* Account Number */}
                 <label className="block">
-                  <span className="text-sm text-gray-700">
-                    Bank Account Number
-                  </span>
+                  <span className="text-sm">Bank Account Number</span>
                   <input
                     name="bankAccountNumber"
                     value={form.bankAccountNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
+                {/* IFSC Code */}
                 <label className="block">
-                  <span className="text-sm text-gray-700">PF Number</span>
+                  <span className="text-sm">IFSC Code</span>
+                  <input
+                    name="ifscCode"
+                    value={form.ifscCode}
+                    onChange={handleInput}
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
+                  />
+                </label>
+
+                {/* PF */}
+                <label className="block">
+                  <span className="text-sm">PF Number</span>
                   <input
                     name="pfNumber"
                     value={form.pfNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
+                {/* EPS */}
                 <label className="block">
-                  <span className="text-sm text-gray-700">EPS Number</span>
+                  <span className="text-sm">EPS Number</span>
                   <input
                     name="epsNumber"
                     value={form.epsNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
               </div>
 
-              {/* RIGHT column (5 fields) */}
+              {/* RIGHT COLUMN */}
               <div className="space-y-3">
+
                 <label className="block">
-                  <span className="text-sm text-gray-700">Password *</span>
+                  <span className="text-sm">Password *</span>
                   <input
                     name="password"
                     type="password"
                     value={form.password}
                     onChange={handleInput}
+                    onKeyDown={handleEnterKey}
                     required
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">Bank Name</span>
-                  <input
-                    name="bankName"
-                    value={form.bankName}
-                    onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-sm text-gray-700">PAN Number</span>
+                  <span className="text-sm">PAN Number</span>
                   <input
                     name="panNumber"
                     value={form.panNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">UAN Number</span>
+                  <span className="text-sm">UAN Number</span>
                   <input
                     name="uanNumber"
                     value={form.uanNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm text-gray-700">ESI Number</span>
+                  <span className="text-sm">ESI Number</span>
                   <input
                     name="esiNumber"
                     value={form.esiNumber}
                     onChange={handleInput}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-sky-200"
+                    onKeyDown={handleEnterKey}
+                    className="mt-1 block w-full px-3 py-2 border rounded"
                   />
                 </label>
               </div>
 
-              {/* Buttons full-width */}
               <div className="md:col-span-2 flex justify-between mt-2">
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                    className="px-5 py-2 bg-gray-200 rounded"
                   >
                     ← Previous
                   </button>
@@ -499,25 +501,19 @@ export default function AddHrForm({ mode = "admin", onClose, onAdded }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                    className="px-5 py-2 bg-gray-200 rounded"
                   >
                     Cancel
                   </button>
                 </div>
 
-                <div>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-5 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-                  >
-                    {submitting
-                      ? isAdmin
-                        ? "Adding HR…"
-                        : "Adding Employee…"
-                      : submitButtonText}
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded disabled:opacity-50"
+                >
+                  {submitting ? "Submitting…" : submitButtonText}
+                </button>
               </div>
             </div>
           )}
