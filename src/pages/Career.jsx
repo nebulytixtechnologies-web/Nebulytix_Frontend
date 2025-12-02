@@ -1,3 +1,4 @@
+//src/pages/Career.jsx
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import JobList from "../components/career/JobList";
@@ -23,7 +24,6 @@ export default function Career() {
           </div>
         </div>
       </div>
-
       <Footer />
     </>
   );

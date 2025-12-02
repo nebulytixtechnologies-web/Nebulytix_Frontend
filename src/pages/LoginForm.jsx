@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { login as apiLogin } from "../api/auth";
 import Navbar from "../components/Navbar";
-import { Eye, EyeClosed} from "lucide-react";
 
 export default function LoginForm() {
   const { role: routeRole } = useParams();
@@ -81,9 +80,7 @@ export default function LoginForm() {
         <div className="w-full max-w-md bg-white border rounded-lg shadow p-6">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold">Sign in to Nebulytix</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Sign in as Admin, HR or Employee
-            </p>
+            
           </div>
 
           {!routeRole && (
@@ -120,35 +117,22 @@ export default function LoginForm() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
+          <div>
+  <label className="block text-sm font-medium text-gray-700">
+    Password
+  </label>
 
-              <div className="relative">
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={handleInput}
-                className="mt-1 block w-full px-3 py-2 border rounded"
-                placeholder="Enter your password"
-                required
-              />
+  <input
+    name="password"
+    type="password"
+    value={form.password}
+    onChange={handleInput}
+    className="mt-1 block w-full px-3 py-2 border rounded"
+    placeholder="Enter your password"
+    required
+  />
+</div>
 
-               {/* Eye Icon */}
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-1 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
-            >
-              {showPassword ? (
-                <EyeClosed className="h-5 w-5" /> 
-              ) : ( 
-                <Eye className="h-5 w-5" />
-                )}
-            </span>
-              </div>
-            </div>
 
            
 

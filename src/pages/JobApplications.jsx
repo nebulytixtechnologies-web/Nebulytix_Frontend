@@ -4,6 +4,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BACKEND_BASE_URL, BASE_URL } from "../api/config";
 
+import JobApplicationsHeader from "../components/job-applications/JobApplicationsHeader";
+import ApplicationsTable from "../components/job-applications/ApplicationsTable";
+import ApplicantDrawer from "../components/job-applications/ApplicantDrawer";
+import ConfirmDialog from "../components/job-applications/ConfirmDialog";
+import EmailModal from "../components/job-applications/EmailModal";
+
 export default function JobApplications() {
   const { id: jobId } = useParams();
   const navigate = useNavigate();
@@ -13,6 +19,7 @@ export default function JobApplications() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [selectedApp, setSelectedApp] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [updatingAppId, setUpdatingAppId] = useState(null);
@@ -22,21 +29,33 @@ export default function JobApplications() {
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState("NEWEST");
 
+  const [openMailBox, setOpenMailBox] = useState(false);
+  const [mailType, setMailType] = useState(""); // "SHORTLISTED" | "REJECTED" | "INVITED_SINGLE" | "TERMINATED_SINGLE"
+  const [mailSubject, setMailSubject] = useState("");
+  const [mailMessage, setMailMessage] = useState("");
+  const [sendingMail, setSendingMail] = useState(false);
+  const [mailTargetApp, setMailTargetApp] = useState(null); // null => bulk, object => single
+
   const mountedRef = useRef(true);
   const searchTimer = useRef(null);
 
+  // ---------- DATA FETCH ----------
   useEffect(() => {
     mountedRef.current = true;
     setLoading(true);
     setError(null);
 
-    const rApps = axios.get(`${BACKEND_BASE_URL}/career/job/${jobId}/applications`);
+    const rApps = axios.get(
+      `${BACKEND_BASE_URL}/career/job/${jobId}/applications`
+    );
     const rJob = axios.get(`${BACKEND_BASE_URL}/career/job/${jobId}`);
 
     Promise.all([rApps, rJob])
       .then(([appsRes, jobRes]) => {
         if (!mountedRef.current) return;
-        setApplications(Array.isArray(appsRes.data?.data) ? appsRes.data.data : []);
+        setApplications(
+          Array.isArray(appsRes.data?.data) ? appsRes.data.data : []
+        );
         setJobDetails(jobRes.data?.data || null);
       })
       .catch((e) => {
@@ -52,6 +71,7 @@ export default function JobApplications() {
     };
   }, [jobId]);
 
+  // ---------- SEARCH DEBOUNCE ----------
   useEffect(() => {
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
@@ -61,6 +81,7 @@ export default function JobApplications() {
     return () => clearTimeout(searchTimer.current);
   }, [searchInput]);
 
+  // ---------- HELPERS ----------
   const resolveUrl = (p) => {
     if (!p) return "";
     if (/^https?:\/\//i.test(p)) return p;
@@ -89,6 +110,58 @@ export default function JobApplications() {
     }
   };
 
+  const fmtDate = (d) => {
+    if (!d) return "-";
+    const dt = new Date(d);
+    return dt.toLocaleString();
+  };
+
+  const statusBadge = (status) => {
+    if (!status) {
+      return (
+        <span className="inline-flex px-2.5 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-medium">
+          Pending
+        </span>
+      );
+    }
+
+    const s = String(status).toUpperCase();
+
+    if (s.includes("INVITED"))
+      return (
+        <span className="inline-flex px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
+          Invited
+        </span>
+      );
+
+    if (s.includes("TERMINATED"))
+      return (
+        <span className="inline-flex px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-semibold">
+          Terminated
+        </span>
+      );
+
+    if (s.includes("SHORT"))
+      return (
+        <span className="inline-flex px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
+          Shortlisted
+        </span>
+      );
+
+    if (s.includes("REJECT"))
+      return (
+        <span className="inline-flex px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-semibold">
+          Rejected
+        </span>
+      );
+
+    return (
+      <span className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-700 rounded-full text-xs">
+        {status}
+      </span>
+    );
+  };
+
   const updateLocal = (id, patch) => {
     setApplications((prev) =>
       prev.map((a) => (String(a.id) === String(id) ? { ...a, ...patch } : a))
@@ -102,11 +175,17 @@ export default function JobApplications() {
     setConfirmAction(null);
     setUpdatingAppId(app.id);
 
-    const original = applications.find((x) => String(x.id) === String(app.id)) || {};
+    const original =
+      applications.find((x) => String(x.id) === String(app.id)) || {};
     const newStatus = shortlist ? "SHORTLISTED" : "REJECTED";
 
     const statusUpper = String(original.status || "").toUpperCase();
-    if (statusUpper.includes("SHORT") || statusUpper.includes("REJECT")) {
+    if (
+      statusUpper.includes("SHORT") ||
+      statusUpper.includes("REJECT") ||
+      statusUpper.includes("INVITED") ||
+      statusUpper.includes("TERMINATED")
+    ) {
       setUpdatingAppId(null);
       return;
     }
@@ -114,7 +193,9 @@ export default function JobApplications() {
     updateLocal(app.id, { status: newStatus });
 
     try {
-      await axios.put(`${BACKEND_BASE_URL}/hr/job/updateStatus/${app.id}/${shortlist}`);
+      await axios.put(
+        `${BACKEND_BASE_URL}/hr/job/updateStatus/${app.id}/${shortlist}`
+      );
     } catch (e) {
       console.error("Status update failed", e);
       updateLocal(app.id, { status: original.status });
@@ -124,44 +205,92 @@ export default function JobApplications() {
     }
   };
 
-  const fmtDate = (d) => {
-    if (!d) return "-";
-    const dt = new Date(d);
-    return dt.toLocaleString();
+  // ---------- EMAIL SENDER ----------
+  const sendMail = async () => {
+    if (!mailSubject.trim() || !mailMessage.trim()) {
+      alert("Subject and message are required.");
+      return;
+    }
+
+    setSendingMail(true);
+
+    try {
+      const body = { subject: mailSubject, message: mailMessage };
+
+      if (mailTargetApp) {
+        // Individual mail
+        if (mailType === "INVITED_SINGLE") {
+          await axios.post(
+            `${BACKEND_BASE_URL}/hr/job/sendInvitedEmail/${mailTargetApp.id}`,
+            body
+          );
+          updateLocal(mailTargetApp.id, { status: "INVITED" });
+        } else if (mailType === "TERMINATED_SINGLE") {
+          await axios.post(
+            `${BACKEND_BASE_URL}/hr/job/sendRejectedEmail/${mailTargetApp.id}`,
+            body
+          );
+          updateLocal(mailTargetApp.id, { status: "TERMINATED" });
+        } else {
+          await axios.post(
+            `${BACKEND_BASE_URL}/hr/job/sendInvitedEmail/${mailTargetApp.id}`,
+            body
+          );
+          updateLocal(mailTargetApp.id, { status: "INVITED" });
+        }
+      } else {
+        // Bulk mail
+        if (mailType === "SHORTLISTED") {
+          await axios.post(
+            `${BACKEND_BASE_URL}/hr/job/sendShortlistedEmails`,
+            body
+          );
+        } else if (mailType === "REJECTED") {
+          await axios.post(
+            `${BACKEND_BASE_URL}/hr/job/sendRejectedEmails`,
+            body
+          );
+        }
+      }
+
+      alert("Email sent successfully!");
+      setOpenMailBox(false);
+      setMailSubject("");
+      setMailMessage("");
+      setMailType("");
+      setMailTargetApp(null);
+    } catch (e) {
+      console.error("Failed to send email", e);
+      alert("Failed to send email.");
+    } finally {
+      setSendingMail(false);
+    }
   };
 
-  const statusBadge = (status) => {
-    if (!status) return null;
-    const s = String(status).toUpperCase();
-
-    if (s.includes("SHORT"))
-      return (
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded font-semibold">
-          SHORTLISTED
-        </span>
-      );
-
-    if (s.includes("REJECT"))
-      return (
-        <span className="px-3 py-1 bg-red-100 text-red-700 rounded font-semibold">
-          REJECTED
-        </span>
-      );
-
-    return (
-      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded">
-        {status}
-      </span>
-    );
-  };
-
+  // ---------- DERIVED DATA ----------
   const finalList = useMemo(() => {
     let list = [...applications];
 
+    const byStatus = (a) => (a.status || "").toUpperCase();
+
     if (filter === "SHORTLISTED")
-      list = list.filter((a) => (a.status || "").toUpperCase().includes("SHORT"));
+      list = list.filter((a) => byStatus(a).includes("SHORT"));
     else if (filter === "REJECTED")
-      list = list.filter((a) => (a.status || "").toUpperCase().includes("REJECT"));
+      list = list.filter((a) => byStatus(a).includes("REJECT"));
+    else if (filter === "PENDING")
+      list = list.filter((a) => {
+        const s = byStatus(a);
+        return (
+          !s.includes("SHORT") &&
+          !s.includes("REJECT") &&
+          !s.includes("INVITED") &&
+          !s.includes("TERMINATED")
+        );
+      });
+    else if (filter === "INVITED")
+      list = list.filter((a) => byStatus(a).includes("INVITED"));
+    else if (filter === "TERMINATED")
+      list = list.filter((a) => byStatus(a).includes("TERMINATED"));
 
     if (searchValue) {
       list = list.filter((a) =>
@@ -173,10 +302,16 @@ export default function JobApplications() {
 
     list.sort((a, b) => {
       if (sortBy === "NEWEST")
-        return new Date(b.applicationDate || 0) - new Date(a.applicationDate || 0);
+        return (
+          new Date(b.applicationDate || 0) -
+          new Date(a.applicationDate || 0)
+        );
 
       if (sortBy === "OLDEST")
-        return new Date(a.applicationDate || 0) - new Date(b.applicationDate || 0);
+        return (
+          new Date(a.applicationDate || 0) -
+          new Date(b.applicationDate || 0)
+        );
 
       if (sortBy === "AZ")
         return (a.fullName || "").localeCompare(b.fullName || "");
@@ -190,306 +325,140 @@ export default function JobApplications() {
     return list;
   }, [applications, filter, searchValue, sortBy]);
 
-  if (loading) return <div className="p-6 text-gray-600">Loading applications...</div>;
-  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  const totals = useMemo(() => {
+    const upper = (s) => (s || "").toUpperCase();
 
-  return (
-    <div className="container mx-auto px-4 py-8">
+    const totalShortlisted = applications.filter((a) =>
+      upper(a.status).includes("SHORT")
+    ).length;
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            Applications for:{" "}
-            <span className="text-sky-700">{jobDetails?.title || "—"}</span>
-          </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Job ID: {jobId} · Total Applicants:
-            <span className="font-semibold text-indigo-600"> {applications.length}</span>
-          </p>
+    const totalRejected = applications.filter((a) =>
+      upper(a.status).includes("REJECT")
+    ).length;
 
-          {/* Tabs */}
-          <div className="mt-4 flex gap-3">
-            <button
-              onClick={() => setFilter("ALL")}
-              className={`px-4 py-2 rounded ${
-                filter === "ALL" ? "bg-sky-600 text-white" : "bg-gray-200"
-              }`}
-            >
-              All ({applications.length})
-            </button>
-            <button
-              onClick={() => setFilter("SHORTLISTED")}
-              className={`px-4 py-2 rounded ${
-                filter === "SHORTLISTED"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200"
-              }`}
-            >
-              Shortlisted (
-              {applications.filter((a) =>
-                (a.status || "").toUpperCase().includes("SHORT")
-              ).length}
-              )
-            </button>
-            <button
-              onClick={() => setFilter("REJECTED")}
-              className={`px-4 py-2 rounded ${
-                filter === "REJECTED"
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-200"
-              }`}
-            >
-              Rejected (
-              {applications.filter((a) =>
-                (a.status || "").toUpperCase().includes("REJECT")
-              ).length}
-              )
-            </button>
-          </div>
-        </div>
+    const totalPending = applications.filter((a) => {
+      const s = upper(a.status);
+      return (
+        !s.includes("SHORT") &&
+        !s.includes("REJECT") &&
+        !s.includes("INVITED") &&
+        !s.includes("TERMINATED")
+      );
+    }).length;
 
-        {/* Controls */}
-        <div className="flex items-center gap-3">
-          <select
-            className="border px-3 py-2 rounded"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="NEWEST">Newest</option>
-            <option value="OLDEST">Oldest</option>
-            <option value="AZ">A–Z</option>
-            <option value="ZA">Z–A</option>
-          </select>
+    const totalInvited = applications.filter((a) =>
+      upper(a.status).includes("INVITED")
+    ).length;
 
-          <input
-            type="text"
-            className="border px-3 py-2 rounded w-64"
-            placeholder="Search name, email, phone"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
+    const totalTerminated = applications.filter((a) =>
+      upper(a.status).includes("TERMINATED")
+    ).length;
 
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-gray-200 rounded"
-          >
-            Back
-          </button>
-        </div>
+    return {
+      totalShortlisted,
+      totalRejected,
+      totalPending,
+      totalInvited,
+      totalTerminated,
+    };
+  }, [applications]);
+
+  // ---------- SIMPLE STATES ----------
+  if (loading)
+    return (
+      <div className="p-8 text-gray-600 text-sm">
+        Loading applications…
       </div>
+    );
 
-      {/* List */}
-      {finalList.length === 0 ? (
-        <div className="p-6 border rounded text-gray-600">
-          No applications found.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {finalList.map((app) => (
-            <div
-              key={app.id}
-              className="p-4 border bg-white rounded shadow-sm flex items-center justify-between gap-4"
-            >
-              <div>
-                <div className="flex items-center gap-4">
-                  <div className="font-medium">{app.fullName}</div>
-                  <div className="text-sm text-gray-500">{app.email}</div>
-                  <div className="text-sm text-gray-500">· {app.phoneNumber}</div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {fmtDate(app.applicationDate)}
-                </div>
-              </div>
+  if (error)
+    return (
+      <div className="p-8 text-red-600 text-sm">
+        {error}
+      </div>
+    );
 
-              <button
-                onClick={() => setSelectedApp(app)}
-                className="px-3 py-1 bg-sky-600 text-white rounded"
-              >
-                View
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+  // ---------- RENDER ----------
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <JobApplicationsHeader
+        jobDetails={jobDetails}
+        jobId={jobId}
+        applicationsCount={applications.length}
+        filter={filter}
+        setFilter={setFilter}
+        totals={totals}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        onBack={() => navigate(-1)}
+        onBulkMailClick={(type) => {
+          setMailType(type); // "SHORTLISTED" or "REJECTED"
+          setMailTargetApp(null);
+          setOpenMailBox(true);
+        }}
+      />
 
-      {/* --- PROFESSIONAL SLIDE-IN PANEL --- */}
+      <ApplicationsTable
+        applications={finalList}
+        filter={filter}
+        statusBadge={statusBadge}
+        fmtDate={fmtDate}
+        onSelectApp={setSelectedApp}
+        onOpenMailForApp={(app, type) => {
+          setMailType(type); // "INVITED_SINGLE" | "TERMINATED_SINGLE"
+          setMailTargetApp(app);
+          setOpenMailBox(true);
+        }}
+      />
+
+      {/* Drawer - Applicant details */}
       {selectedApp && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setSelectedApp(null)}
-          />
-
-          <aside className="fixed right-0 top-0 h-full w-full md:w-[46%] lg:w-[34%] bg-white shadow-2xl z-50 overflow-y-auto rounded-l-2xl transform animate-slideIn">
-            {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tl-2xl">
-  <div className="flex items-center gap-3">
-    <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold backdrop-blur-md">
-      {(selectedApp.fullName || "U")
-        .split(" ")
-        .map((x) => x[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()}
-    </div>
-
-    <div className="flex-1">
-      <h2 className="text-xl font-semibold">{selectedApp.fullName}</h2>
-      <p className="text-xs text-white/90">{selectedApp.email}</p>
-      <p className="text-xs text-white/90">{selectedApp.phoneNumber}</p>
-    </div>
-
-    <button
-      onClick={() => setSelectedApp(null)}
-      className="text-white text-xl hover:text-gray-200"
-    >
-      ✕
-    </button>
-  </div>
-
-  <p className="text-xs mt-2 opacity-90">
-    Applied: {fmtDate(selectedApp.applicationDate)}
-  </p>
-  <p className="text-xs opacity-90">
-    Position: <strong>{jobDetails?.title}</strong>
-  </p>
-</div>
-
-
-            {/* Body */}
-            <div className="p-6 space-y-6">
-              {/* Status */}
-              <div className="bg-gray-50 p-4 rounded-xl border">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Application Status</h3>
-                  {statusBadge(selectedApp.status)}
-                </div>
-
-                {!String(selectedApp.status).toUpperCase().includes("SHORT") &&
-                !String(selectedApp.status).toUpperCase().includes("REJECT") ? (
-                  <div className="mt-4 flex gap-3">
-                    <button
-                      onClick={() =>
-                        setConfirmAction({ app: selectedApp, shortlist: true })
-                      }
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
-                    >
-                      Shortlist
-                    </button>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({ app: selectedApp, shortlist: false })
-                      }
-                      className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Resume */}
-              <div className="bg-gray-50 p-5 rounded-xl border">
-                <h3 className="text-lg font-semibold mb-3">Resume</h3>
-
-                {selectedApp.resumeUrl ? (
-                  <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm border">
-                    <div className="font-medium text-gray-700">
-                      {selectedApp.fullName}'s Resume
-                    </div>
-
-                    <div className="flex gap-2">
-                      <a
-                        href={resolveUrl(selectedApp.resumeUrl)}
-                        target="_blank"
-                        className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                      >
-                        Open
-                      </a>
-
-                      <button
-                        onClick={() =>
-                          downloadFile(
-                            selectedApp.resumeUrl,
-                            `${selectedApp.fullName}_resume.pdf`
-                          )
-                        }
-                        className="px-3 py-1.5 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-gray-600">No resume uploaded.</p>
-                )}
-              </div>
-
-              {/* Additional Info */}
-              <div className="bg-gray-50 p-5 rounded-xl border">
-                <h3 className="text-lg font-semibold mb-2">Additional Info</h3>
-                <p className="text-sm text-gray-600">
-                  Email: <strong>{selectedApp.email}</strong>
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  Mobile: <strong>{selectedApp.phoneNumber}</strong>
-                </p>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setSelectedApp(null)}
-                  className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </aside>
-        </>
+        <ApplicantDrawer
+          selectedApp={selectedApp}
+          jobDetails={jobDetails}
+          fmtDate={fmtDate}
+          statusBadge={statusBadge}
+          resolveUrl={resolveUrl}
+          downloadFile={downloadFile}
+          onClose={() => setSelectedApp(null)}
+          onShortlist={() =>
+            setConfirmAction({ app: selectedApp, shortlist: true })
+          }
+          onReject={() =>
+            setConfirmAction({ app: selectedApp, shortlist: false })
+          }
+        />
       )}
 
-      {/* Confirm Modal */}
+      {/* Confirm Shortlist / Reject */}
       {confirmAction && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 z-50"
-            onClick={() => setConfirmAction(null)}
-          />
+        <ConfirmDialog
+          confirmAction={confirmAction}
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={(action) => updateStatus(action.app, action.shortlist)}
+          loadingId={updatingAppId}
+        />
+      )}
 
-          <div className="fixed top-[25%] left-1/2 -translate-x-1/2 bg-white shadow-xl rounded p-6 z-50 w-full max-w-md">
-            <h3 className="text-lg font-semibold">
-              {confirmAction.shortlist ? "Shortlist Applicant" : "Reject Applicant"}
-            </h3>
-
-            <p className="mt-2 text-gray-700">
-              Are you sure you want to{" "}
-              <strong>
-                {confirmAction.shortlist ? "shortlist" : "reject"}
-              </strong>{" "}
-              <strong>{confirmAction.app.fullName}</strong>?
-            </p>
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                className="px-3 py-1 bg-gray-200 rounded"
-                onClick={() => setConfirmAction(null)}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="px-3 py-1 bg-blue-600 text-white rounded"
-                onClick={() =>
-                  updateStatus(confirmAction.app, confirmAction.shortlist)
-                }
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </>
+      {/* Email modal */}
+      {openMailBox && (
+        <EmailModal
+          mailType={mailType}
+          mailTargetApp={mailTargetApp}
+          mailSubject={mailSubject}
+          setMailSubject={setMailSubject}
+          mailMessage={mailMessage}
+          setMailMessage={setMailMessage}
+          sendingMail={sendingMail}
+          onClose={() => {
+            setOpenMailBox(false);
+            setMailTargetApp(null);
+            setMailType("");
+          }}
+          onSend={sendMail}
+        />
       )}
     </div>
   );

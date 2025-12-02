@@ -1,13 +1,18 @@
 // src/components/hr/HrInfo.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { BACKEND_BASE_URL, BASE_URL } from "../../api/config";
-import { Pencil } from "lucide-react";
+import { Pencil, Image, Trash2 } from "lucide-react";
 
 export default function HrInfo({ role = "hr", refreshKey = 0 }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [viewPhoto, setViewPhoto] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+
+  const fileInputRef = useRef(null);
 
   const LOCAL_KEY =
     role === "admin"
@@ -21,9 +26,7 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
 
     async function load() {
       setLoading(true);
-      setError(null);
 
-      // 1) Try localStorage first
       try {
         const raw = localStorage.getItem(LOCAL_KEY);
         if (raw) {
@@ -34,11 +37,8 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
             return;
           }
         }
-      } catch (e) {
-        console.warn("Failed to read profile from localStorage", e);
-      }
+      } catch {}
 
-      // 2) Fetch from backend if token is available
       const token = localStorage.getItem("neb_token");
       if (!token) {
         if (mounted) {
@@ -61,43 +61,36 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
           withCredentials: true,
         });
 
-        const unwrapped = res.data?.data ?? res.data;
-        if (mounted) setProfile(unwrapped);
-      } catch (err) {
-        console.warn("Profile fetch error", err);
-        if (mounted) setError("Failed to load profile from server.");
+        const data = res.data?.data ?? res.data;
+        if (mounted) setProfile(data);
+      } catch {
+        if (mounted) setError("Failed to load profile.");
       } finally {
         if (mounted) setLoading(false);
       }
     }
 
     load();
-    return () => {
-      mounted = false;
-    };
+    return () => (mounted = false);
   }, [LOCAL_KEY, refreshKey, role]);
 
-  // Helper: ensure a URL is resolvable by browser.
   function resolveImageUrl(url) {
     if (!url) return null;
-    // If already absolute (http/https), return as-is
-    if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    // If relative (starts with '/'), prefix with BASE_URL
+    if (url.startsWith("http")) return url;
     if (url.startsWith("/")) return `${BASE_URL}${url}`;
-    // Otherwise attempt to prefix BACKEND_BASE_URL (fallback)
     return `${BASE_URL}/${url}`;
   }
 
-  // Profile Image Upload
   async function handlePhotoUpload(e) {
     const file = e.target.files[0];
     if (!file || !profile?.id) return;
 
     const formData = new FormData();
-    formData.append("profileImage", file); // backend expects 'profileImage'
+    formData.append("profileImage", file);
 
     try {
       const token = localStorage.getItem("neb_token");
+
       const res = await axios.put(
         `${BACKEND_BASE_URL}/employee/${profile.id}/profile-picture`,
         formData,
@@ -110,55 +103,41 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
         }
       );
 
-      // Backend might return raw path ("/uploads/..") or a ResponseMessage with data field.
-      const newUrlRaw = res.data?.data ?? res.data;
-      // Normalize to an absolute URL for display.
-      const newUrl =
-        typeof newUrlRaw === "string" ? resolveImageUrl(newUrlRaw) : null;
+      const newUrl = res.data?.data ?? res.data;
 
-      // Update UI & localStorage
-      const updatedProfile = {
-        ...profile,
-        profilePictureUrl: newUrlRaw ?? profile.profilePictureUrl,
-      };
-      setProfile(updatedProfile);
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(updatedProfile));
+      const updated = { ...profile, profilePictureUrl: newUrl };
+      setProfile(updated);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(updated));
 
-      // Notify other parts of the app
-      window.dispatchEvent(
-        new CustomEvent("profileUpdated", { detail: updatedProfile })
-      );
-    } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Failed to upload image. Check console for details.");
+      setShowMenu(false);
+    } catch {
+      alert("Failed to upload image.");
     }
   }
 
-  if (loading) {
-    return (
-      <div className="p-4 bg-white rounded shadow">
-        <div className="animate-pulse space-y-3">
-          <div className="h-6 bg-gray-200 rounded w-3/4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-        </div>
-      </div>
-    );
+  async function handleDeletePhoto() {
+    if (!profile?.id) return;
+
+    try {
+      const token = localStorage.getItem("neb_token");
+
+      await axios.delete(
+        `${BACKEND_BASE_URL}/employee/${profile.id}/profile-picture`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
+
+      const updated = { ...profile, profilePictureUrl: null };
+      setProfile(updated);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(updated));
+
+      setShowMenu(false);
+    } catch {
+      alert("Failed to delete photo.");
+    }
   }
 
-  if (error) {
-    return (
-      <div className="p-4 bg-white rounded shadow text-red-600">{error}</div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="p-4 bg-white rounded shadow text-gray-600">
-        Profile not available.
-      </div>
-    );
-  }
+  if (loading) return <div className="p-4 bg-white rounded shadow">Loading…</div>;
+  if (error) return <div className="p-4 bg-white rounded shadow text-red-600">{error}</div>;
 
   const {
     firstName,
@@ -175,86 +154,112 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
     profilePictureUrl,
   } = profile;
 
-  // Decide final image src to render
-  // profilePictureUrl from backend might be relative ("/uploads/...") OR already full URL.
   const displayImageSrc = profilePictureUrl
     ? resolveImageUrl(profilePictureUrl)
     : `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`;
 
   return (
-    <div className="p-4 bg-white rounded shadow flex gap-6">
-      {/* Left: Profile Image + Upload Button */}
-      <div className="flex flex-col items-center gap-2 relative">
-        <div className="relative">
-          <img
-            src={displayImageSrc}
-            alt="Profile"
-            className="h-24 w-24 rounded-full object-cover border shadow"
-            onError={(e) => {
-              // fallback to avatar if static file fails to load
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=0ea5e9&color=fff`;
-            }}
-          />
+    <>
+      <div className="p-4 bg-white rounded shadow flex gap-6">
 
-          {/* EDIT BUTTON */}
-          <label
-            htmlFor="upload-photo"
-            className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow cursor-pointer hover:bg-gray-100"
-          >
-            <Pencil className="w-4 h-4 text-sky-700" />
-          </label>
+        {/* LEFT SIDE IMAGE + MENU */}
+        <div className="flex flex-col items-center gap-2 relative">
 
-          <input
-            id="upload-photo"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handlePhotoUpload}
-          />
-        </div>
+          <div className="relative">
+            <img
+              src={displayImageSrc}
+              className="h-24 w-24 rounded-full object-cover border shadow cursor-pointer"
+              onClick={() => setViewPhoto(true)}
+            />
 
-        <div className="text-lg font-semibold text-center">
-          {firstName ?? ""} {lastName ?? ""}
-        </div>
-      </div>
+            <button
+              onClick={() => setShowMenu(true)}
+              className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow hover:bg-gray-100"
+            >
+              <Pencil className="w-4 h-4 text-sky-700" />
+            </button>
 
-      {/* Right: Profile details (bank details removed) */}
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
-        <div>
-          <div className="text-xs text-gray-500">Email</div>
-          <div>{email ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Mobile</div>
-          <div>{mobile ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Card Number</div>
-          <div>{cardNumber ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Gender</div>
-          <div>{gender ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Joining Date</div>
-          <div>
-            {joiningDate ? new Date(joiningDate).toLocaleDateString() : "—"}
+            {/* FULL THEME POPUP (REFERENCE MATCHED) */}
+            {showMenu && (
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMenu(false)}
+              >
+                <div
+                  className="
+                    absolute z-50 
+                    bg-[#141414]/95
+                    text-white 
+                    backdrop-blur-sm
+                    rounded-2xl 
+                    shadow-2xl 
+                    w-64
+                    p-3
+                  "
+                  style={{
+                    top: "130px",
+                    left: "220px",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Choose from library */}
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/10 w-full text-left"
+                  >
+                    <Image className="w-5 h-5 text-gray-300" />
+                    <span className="text-white text-sm">Choose from library</span>
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    onClick={handleDeletePhoto}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-red-900/30 text-red-500 w-full text-left"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    <span className="text-red-500 text-sm">Delete</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* HIDDEN INPUT */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+            />
+          </div>
+
+          <div className="text-lg font-semibold text-center">
+            {firstName} {lastName}
           </div>
         </div>
-        <div>
-          <div className="text-xs text-gray-500">Job Role / Domain</div>
-          <div>{jobRole ?? domain ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Days Present</div>
-          <div>{daysPresent ?? "—"}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500">Paid Leaves</div>
-          <div>{paidLeaves ?? "—"}</div>
+
+        {/* RIGHT SIDE INFO */}
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+          <div><div className="text-xs text-gray-500">Email</div>{email}</div>
+          <div><div className="text-xs text-gray-500">Mobile</div>{mobile}</div>
+          <div><div className="text-xs text-gray-500">Card Number</div>{cardNumber}</div>
+          <div><div className="text-xs text-gray-500">Gender</div>{gender}</div>
+          <div><div className="text-xs text-gray-500">Joining Date</div>{joiningDate ? new Date(joiningDate).toLocaleDateString() : "—"}</div>
+          <div><div className="text-xs text-gray-500">Job Role / Domain</div>{jobRole ?? domain}</div>
+          <div><div className="text-xs text-gray-500">Days Present</div>{daysPresent}</div>
+          <div><div className="text-xs text-gray-500">Paid Leaves</div>{paidLeaves}</div>
         </div>
       </div>
-    </div>
+
+      {/* FULLSCREEN PHOTO */}
+      {viewPhoto && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          onClick={() => setViewPhoto(false)}
+        >
+          <img src={displayImageSrc} className="max-h-[60vh] rounded-lg" />
+        </div>
+      )}
+    </>
   );
 }

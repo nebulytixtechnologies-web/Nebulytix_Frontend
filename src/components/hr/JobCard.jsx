@@ -13,6 +13,7 @@ export default function JobCard({ job, onJobDeleted }) {
   const title = job.jobTitle || job.title || "Untitled Role";
   const experience = job.experienceLevel || job.experience || "Not specified";
   const domain = job.domain || "General";
+  const location = job.location || "Not specified";
 
   async function handleDelete() {
     if (!confirm(`Delete job "${title}" (ID: ${id})?`)) return;
@@ -28,29 +29,16 @@ export default function JobCard({ job, onJobDeleted }) {
     }
   }
 
-  // Normalizes requirements/responsibilities into array
-  const normalizeList = (value) => {
-    if (!value) return [];
-    if (Array.isArray(value)) return value;
-    return value
-      .split(/\r?\n|;|,/)
-      .map((v) => v.trim())
-      .filter(Boolean);
-  };
-
-  const requirements = normalizeList(job.requirements);
-  const responsibilities = normalizeList(job.responsibilities);
-
   return (
     <>
-      {/* CARD */}
+      {/* JOB CARD */}
       <div className="p-5 bg-white rounded-xl shadow-sm border flex items-center justify-between hover:shadow-md transition">
         
         {/* LEFT */}
-        <div>
+        <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {experience} · {domain}
+          <p className="text-sm text-gray-500">
+            {domain} • {experience} • {location}
           </p>
         </div>
 
@@ -60,7 +48,7 @@ export default function JobCard({ job, onJobDeleted }) {
             onClick={() => setShowModal(true)}
             className="px-4 py-1.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700"
           >
-            View Job
+            View
           </button>
 
           <button
@@ -80,13 +68,13 @@ export default function JobCard({ job, onJobDeleted }) {
         </div>
       </div>
 
-      {/* BIG FULL JOB DETAILS MODAL */}
+      {/* JOB DETAILS MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           
           <div className="bg-white w-full max-w-3xl rounded-xl shadow-xl relative max-h-[90vh] overflow-y-auto p-6">
 
-            {/* Close Button */}
+            {/* CLOSE BUTTON */}
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center 
@@ -96,74 +84,64 @@ export default function JobCard({ job, onJobDeleted }) {
               ✕
             </button>
 
-            {/* Title */}
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            {/* HEADER */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
 
-            <p className="text-gray-500 mt-1 text-sm">
-              {domain} • {experience}
-            </p>
+              <p className="text-gray-500 mt-1 text-sm">
+                {domain} • {experience} • {location}
+              </p>
+            </div>
 
-            {/* Description */}
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">Description</h3>
-              <p className="text-gray-700 mt-2">
+            {/* DESCRIPTION */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">Job Description</h3>
+              <p className="text-gray-700 whitespace-pre-line mt-2">
                 {job.description || "No description provided."}
               </p>
             </div>
 
-            {/* Requirements + Responsibilities */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {/* REQUIREMENTS + RESPONSIBILITIES */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
               {/* Requirements */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Requirements
-                </h3>
-
-                {requirements.length ? (
-                  <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                    {requirements.map((req, i) => (
-                      <li key={i}>{req}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 mt-2">
-                    No requirements listed.
-                  </p>
-                )}
+                <h3 className="text-lg font-semibold text-gray-800">Requirements</h3>
+                <p className="text-gray-700 whitespace-pre-line mt-2">
+                  {job.requirements || "No requirements listed."}
+                </p>
               </div>
 
               {/* Responsibilities */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Responsibilities
-                </h3>
-
-                {responsibilities.length ? (
-                  <ul className="list-disc list-inside mt-2 text-gray-700 space-y-1">
-                    {responsibilities.map((res, i) => (
-                      <li key={i}>{res}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 mt-2">
-                    No responsibilities provided.
-                  </p>
-                )}
+                <h3 className="text-lg font-semibold text-gray-800">Responsibilities</h3>
+                <p className="text-gray-700 whitespace-pre-line mt-2">
+                  {job.responsibilities || "No responsibilities provided."}
+                </p>
               </div>
             </div>
 
-            {/* Footer Info */}
-            <div className="mt-6 text-gray-700">
-              <p>
-                <strong>Salary:</strong> {job.salaryRange || "Not specified"}
-              </p>
-              <p>
-                <strong>Active:</strong> {String(job.isActive)}
-              </p>
+            {/* FOOTER INFO */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm border-t pt-4">
+
+              <div>
+                <strong className="text-gray-800">Salary: </strong>
+                {job.salaryRange || "Not specified"}
+              </div>
+
+              <div>
+                <strong className="text-gray-800">Location: </strong>
+                {location}
+              </div>
+
+              <div>
+                <strong className="text-gray-800">Active: </strong>
+                {String(job.isActive)}
+              </div>
+
             </div>
 
-            {/* Buttons */}
+            {/* CLOSE BUTTON */}
             <div className="mt-8 flex justify-end">
               <button
                 onClick={() => setShowModal(false)}
