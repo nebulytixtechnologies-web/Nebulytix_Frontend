@@ -173,15 +173,7 @@ const ContactPage = () => {
       {/* ✅ ADDED NAVBAR (ONLY CHANGE DONE) */}
       <Navbar />
 
-      {/* Banner Section */}
-      <div
-        className="relative bg-cover bg-center h-96 flex items-center justify-center"
-        style={{
-          backgroundImage: `url(${contactImg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      ></div>
+     
 
       {/* Contact Section */}
       <div className="container mx-auto px-4 py-8 flex flex-wrap">

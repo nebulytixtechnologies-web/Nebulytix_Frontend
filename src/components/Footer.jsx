@@ -1,4 +1,3 @@
-
 import {
   Phone,
   Mail,
@@ -12,88 +11,81 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-16 pb-10 mt-20 relative">
-      {/* Top Gradient Line */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
-
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-14">
-        {/* Brand Section */}
+    <footer className="bg-white border-t border-slate-200 pt-16 pb-10 mt-20">
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-14">
+        
+        {/* Brand */}
         <div>
-          <h2 className="text-3xl font-bold text-white tracking-wide mb-3">
+          <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-3">
             Nebulytix
           </h2>
-          <p className="text-gray-400 leading-relaxed">
-            Innovating Workforce Automation & Intelligent Attendance Systems
-            with world-class engineering.
+          <p className="text-slate-600 leading-relaxed text-sm">
+            Engineering reliable, scalable digital solutions for organizations
+            that value technology discipline.
           </p>
         </div>
 
-        {/* Quick Links */}
+        {/* Explore */}
         <div>
-          <h3 className="text-xl font-semibold text-white mb-6">Explore</h3>
-          <ul className="space-y-3">
+          <h3 className="text-lg font-medium text-slate-900 mb-5">Explore</h3>
+          <ul className="space-y-3 text-sm">
             {["Home", "Careers", "Services", "Support"].map((item) => (
               <li
                 key={item}
-                className="flex items-center gap-2 group cursor-pointer"
+                className="flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 transition"
               >
-                <ChevronRight
-                  className="text-gray-500 group-hover:text-blue-400 group-hover:translate-x-1 transition"
-                  size={16}
-                />
-                <span className="group-hover:text-white transition">
-                  {item}
-                </span>
+                <ChevronRight size={14} className="text-slate-400" />
+                {item}
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Contact Details */}
+        {/* Contact */}
         <div>
-          <h3 className="text-xl font-semibold text-white mb-6">Contact</h3>
-          <ul className="space-y-4 text-gray-400">
+          <h3 className="text-lg font-medium text-slate-900 mb-5">Contact</h3>
+          <ul className="space-y-3 text-sm text-slate-600">
             <li className="flex items-center gap-2">
-              <Phone size={18} /> 8125263737
+              <Phone size={16} /> 8125263737
             </li>
             <li className="flex items-center gap-2">
-              <Phone size={18} /> 8125263838
+              <Phone size={16} /> 8125263838
             </li>
             <li className="flex items-center gap-2">
-              <Mail size={18} /> hr@nebulytixtechnologies.com
+              <Mail size={16} /> hr@nebulytixtechnologies.com
             </li>
           </ul>
         </div>
 
-        {/* Newsletter Signup */}
+        {/* Newsletter */}
         <div>
-          <h3 className="text-xl font-semibold text-white mb-6">
+          <h3 className="text-lg font-medium text-slate-900 mb-5">
             Stay Updated
           </h3>
-          <p className="text-gray-400 mb-4">
-            Subscribe for updates, releases & announcements.
+          <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+            Subscribe to receive updates and announcements.
           </p>
 
-          <div className="flex bg-gray-800 p-2 rounded-xl items-center">
+          <div className="flex bg-slate-100 border border-slate-300 rounded-md overflow-hidden">
             <input
               type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-transparent text-gray-300 outline-none px-2"
+              placeholder="Email address"
+              className="flex-1 bg-transparent text-slate-700 px-3 py-2 text-sm outline-none"
             />
-            <button className="p-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
-              <Send size={18} className="text-white" />
+            <button className="px-3 bg-slate-900 hover:bg-slate-800 transition text-white flex items-center justify-center">
+              <Send size={16} />
             </button>
           </div>
         </div>
       </div>
 
       {/* Corporate Office */}
-      <div className="mt-14 mx-auto max-w-7xl px-6">
-        <h3 className="text-xl font-semibold text-white mb-4">
+      <div className="max-w-6xl mx-auto px-6 mt-14">
+        <h3 className="text-lg font-medium text-slate-900 mb-3">
           Corporate Office
         </h3>
-        <div className="flex items-start gap-3 text-gray-400">
-          <MapPin size={22} className="text-blue-400 flex-shrink-0" />
+        <div className="flex items-start gap-2 text-slate-600 text-sm leading-relaxed">
+          <MapPin size={18} className="text-slate-700 flex-shrink-0" />
           <p>
             #501-B, PSR Prime Towers, 5th Floor, Beside DLF, Gachibowli,
             <br />
@@ -102,25 +94,24 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Follow Us Section */}
-      <div className="mt-12 text-center">
-        <p className="text-gray-400 mb-3 text-sm">Follow us on</p>
+      {/* Social */}
+      <div className="text-center mt-12">
+        <p className="text-slate-500 text-xs mb-3">Connect with us</p>
 
-        <div className="flex justify-center gap-4">
-          <a className="p-3 bg-gray-800 rounded-full hover:bg-blue-600 transition">
-            <Linkedin size={20} />
-          </a>
-          <a className="p-3 bg-gray-800 rounded-full hover:bg-blue-500 transition">
-            <Facebook size={20} />
-          </a>
-          <a className="p-3 bg-gray-800 rounded-full hover:bg-cyan-400 transition">
-            <Twitter size={20} />
-          </a>
+        <div className="flex justify-center gap-3">
+          {[Linkedin, Facebook, Twitter].map((Icon, i) => (
+            <a
+              key={i}
+              className="p-2 border border-slate-300 rounded-md hover:bg-slate-100 transition"
+            >
+              <Icon size={16} className="text-slate-700" />
+            </a>
+          ))}
         </div>
       </div>
 
-      {/* Bottom Line */}
-      <div className="border-t border-gray-700 mt-10 pt-6 text-center text-gray-500 text-sm">
+      {/* Bottom */}
+      <div className="border-t border-slate-200 mt-10 pt-6 text-center text-slate-500 text-xs">
         © {new Date().getFullYear()} Nebulytix. All rights reserved.
       </div>
     </footer>
