@@ -5,7 +5,7 @@ import { BACKEND_BASE_URL } from "../../api/config";
 import EmployeeCard from "./EmployeeCard";
 import { Search } from "lucide-react";
 
-export default function EmployeeList({ refreshKey = 0, onActionComplete }) {
+export default function EmployeeList({ refreshKey = 0, onActionComplete, roleFilter }) {
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,27 @@ export default function EmployeeList({ refreshKey = 0, onActionComplete }) {
 
     return () => (mounted = false);
   }, [refreshKey]);
+
+  useEffect(() => {
+  const token = localStorage.getItem("neb_token");
+
+  axios.get(`${BACKEND_BASE_URL}/admin/employees`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(res => {
+    let filtered = res.data || [];
+
+    if (roleFilter === "EMPLOYEE") {
+      filtered = filtered.filter(u => u.loginRole === "EMPLOYEE");
+    } else if (roleFilter === "HR") {
+      filtered = filtered.filter(u => u.loginRole === "HR");
+    }
+
+    setEmployees(filtered);
+  })
+  .catch(err => console.error("Failed to fetch employees", err));
+}, [roleFilter, refreshKey]);
+
 
   // 🔎 Search Logic
   useEffect(() => {

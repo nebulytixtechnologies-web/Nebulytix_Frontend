@@ -94,6 +94,7 @@ export default function LoginForm() {
                 className="mt-1 block w-full px-3 py-2 border rounded"
               >
                 <option value="admin">Admin</option>
+                <option value="client">Client</option>
                 <option value="hr">HR</option>
                 <option value="employee">Employee</option>
               </select>

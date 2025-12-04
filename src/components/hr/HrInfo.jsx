@@ -149,7 +149,6 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
     domain,
     gender,
     joiningDate,
-    daysPresent,
     paidLeaves,
     profilePictureUrl,
   } = profile;
@@ -237,6 +236,17 @@ export default function HrInfo({ role = "hr", refreshKey = 0 }) {
             {firstName} {lastName}
           </div>
         </div>
+        <div>
+          <div className="text-xs text-gray-500">Job Role / Domain</div>
+          <div>{jobRole ?? domain ?? "—"}</div>
+        </div>
+        {/* <div>
+          <div className="text-xs text-gray-500">Days Present</div>
+          <div>{daysPresent ?? "—"}</div>
+        </div> */}
+        <div>
+          <div className="text-xs text-gray-500">Paid Leaves</div>
+          <div>{paidLeaves ?? "—"}</div>
 
         {/* RIGHT SIDE INFO */}
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
