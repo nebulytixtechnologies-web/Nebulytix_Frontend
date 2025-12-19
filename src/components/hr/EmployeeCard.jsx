@@ -1,7 +1,8 @@
+//Nebulytix_Frontend/src/components/hr/EmployeeCard.jsx
 import { useState, useRef, useEffect } from "react";
 import ViewEmployeeModal from "./ViewEmployeeModal";
 import AttendanceForm from "./AttendanceForm";
-import PayslipListModal from "./PayslipListModal";
+import PayslipListModalHR from "./PayslipListModalHR";
 import GeneratePayslipModal from "./GeneratePayslipModal";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
@@ -139,13 +140,13 @@ export default function EmployeeCard({ employee, onActionComplete }) {
           onAdded={onActionComplete}
         />
       )}
+{showPayslips && (
+  <PayslipListModalHR
+    employee={employee}
+    onClose={() => setShowPayslips(false)}
+  />
+)}
 
-      {showPayslips && (
-        <PayslipListModal
-          employee={employee}
-          onClose={() => setShowPayslips(false)}
-        />
-      )}
 
       {showPayslipGenerator && (
         <GeneratePayslipModal
