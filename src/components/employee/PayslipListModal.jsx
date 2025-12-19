@@ -1,7 +1,9 @@
+//Nebulytix_Frontend/src/components/employee/PayslipListModal.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BACKEND_BASE_URL } from "../../api/config";
 import PayslipCard from "./PayslipCard";
+
 
 export default function PayslipListModal({ employee, onClose }) {
   const [payslips, setPayslips] = useState([]);

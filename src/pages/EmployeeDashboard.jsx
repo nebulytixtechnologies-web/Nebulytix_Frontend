@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import HrInfo from "../components/hr/HrInfo";
 import TaskList from "../components/admin/TaskList";
 import ViewTasksModal from "../components/admin/ViewTasksModal";
-import PayslipListModal from "../components/hr/PayslipListModal";
+import PayslipListModal from "../components/employee/PayslipListModal";
+
 import HolidayModal from "../components/hr/HolidayModal";
 
 import axios from "axios";
