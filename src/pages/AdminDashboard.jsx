@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import HrInfo from "../components/hr/HrInfo";
 import AddHrForm from "../components/admin/AddHrForm";
 import EmployeeList from "../components/admin/EmployeeList";
+import HrList from "../components/admin/HrList";
+
 
 import profileLogo from "../assets/images/profileLogo.png";
 import { BACKEND_BASE_URL } from "../api/config";
@@ -161,6 +163,14 @@ const [showDailyReport, setShowDailyReport] = useState(false);
           <div className="card mb-10">
             <HrInfo role="admin" refreshKey={refreshKey} />
           </div>
+
+<div className="card mb-10">
+  <h2 className="text-xl font-semibold mb-3 text-sky-800">
+    HR List
+  </h2>
+
+  <HrList onActionComplete={triggerRefresh} />
+</div>
 
           {/* Employee List */}
           <div className="card mb-10">
